@@ -14,6 +14,11 @@ Git Helper - это инструмент автоматизации Git/SSH work
   - Создаёт/активирует Python venv
   - Показывает интерактивное меню (1-7)
   - Вызывает соответствующие Python-модули из `src/`
+- **Quick Lint:** [quick_lint.bat](../quick_lint.bat) - минималистичный запуск линтера:
+  - Запускается из любой директории (добавить в PATH)
+  - Использует текущую директорию как целевую
+  - venv всегда из `%SCRIPT_DIR%` (где лежит bat)
+  - Синтаксис: `quick_lint` (без аргументов)
   
 ### Path Convention (КРИТИЧНО!)
 
@@ -114,6 +119,15 @@ subprocess.run(..., encoding=console_encoding, errors='replace')
 1. **Auto-detection:** Сканирует файлы → определяет расширения → автоматически выбирает линтеры
 2. **Docker invocation:** Монтирует корень репозитория в `/tmp/lint`, проверяет только относительный путь
 3. **Config:** Ищет `.markdownlint.yaml` в корне репозитория (не в проверяемой папке!)
+4. **Dual Mode:** Интерактивный (по умолчанию) + тихий режим (`--silent --path`)
+
+**CLI аргументы:**
+
+```bash
+python run_linter.py                    # Интерактивный режим
+python run_linter.py --path "C:\..."   # Интерактивный с предзаполненным путём
+python run_linter.py --path "C:\..." --silent  # Тихий режим (для quick_lint)
+```
 
 **Команда Docker:**
 
@@ -186,7 +200,24 @@ def update_ssh_config(full_name: str):
 ## Testing & Development
 
 ### Run Individual Scripts
+Quick Lint Setup
 
+```bash
+# Добавить в PATH переменную среды Windows:
+C:\Users\kseni\Documents\GitHub\git_helper
+
+# Использование откуда угодно:
+cd C:\Projects\MyRepo\task_01
+quick_lint  # Проверит текущую директорию
+
+# Внутреннее поведение:
+# 1. %SCRIPT_DIR% → C:\Users\kseni\Documents\GitHub\git_helper
+# 2. %TARGET_DIR% → %CD% (текущая директория)
+# 3. Активирует venv из SCRIPT_DIR
+# 4. Вызывает: python run_linter.py --path TARGET_DIR --silent
+```
+
+### 
 ```bash
 # Активировать venv
 venv\Scripts\activate

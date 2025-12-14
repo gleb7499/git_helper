@@ -3,9 +3,14 @@ Run Super Linter Script
 
 Интерактивный скрипт для запуска супер-линтера через Docker.
 Проверяет код в указанной папке репозитория.
+
+Поддерживает два режима:
+1. Интерактивный (по умолчанию) - с подробным выводом и запросом пути
+2. Тихий режим (--silent) - минимальный вывод, путь передаётся через --path
 """
 
 import sys
+import argparse
 from pathlib import Path
 from git_docker_utils import GitDockerUtils
 
@@ -24,13 +29,134 @@ def print_header(text: str) -> None:
     print()
 
 
+def run_linter_silent(folder_path: str) -> int:
+    """
+    Запуск линтера в тихом режиме (минимальный вывод).
+    
+    Args:
+        folder_path: Путь к папке для проверки
+        
+    Returns:
+        Код возврата (0 - успех, 1 - ошибка)
+    """
+    try:
+        utils = GitDockerUtils()
+        
+        # Валидация пути
+        folder = Path(folder_path).resolve()
+        if not folder.exists():
+            print(f"❌ Папка не существует: {folder_path}")
+            return 1
+        
+        if not folder.is_dir():
+            print(f"❌ Указанный путь не является папкой: {folder_path}")
+            return 1
+        
+        # Проверка Docker (тихо)
+        docker_ok, _ = utils.check_docker_running()
+        if not docker_ok:
+            print("❌ Docker не запущен. Запустите Docker Desktop.")
+            return 1
+        
+        # Поиск корня репозитория
+        repo_root = utils.find_git_root(str(folder))
+        if not repo_root:
+            print(f"❌ Git репозиторий не найден для: {folder.name}")
+            return 1
+        
+        relative_path = utils.get_relative_path(str(folder), repo_root)
+        
+        # Автоопределение линтеров
+        selected_linters, file_stats = utils.detect_linters_from_files(folder)
+        
+        if not selected_linters:
+            print("⚠️  Нет файлов для проверки")
+            return 1
+        
+        # Краткая информация о запуске
+        print(f"🔍 Проверка: {folder.name} ({len(file_stats)} типов файлов, {len(selected_linters)} линтеров)")
+        
+        # Запуск линтера
+        success, output = utils.run_super_linter(
+            repo_root,
+            relative_path,
+            selected_linters
+        )
+        
+        if not success:
+            print(output)
+            return 1
+        
+        # Парсим результаты
+        fatal, errors, warnings = utils.parse_linter_output(output)
+        
+        # Краткий вывод результатов
+        if not fatal and not errors and not warnings:
+            print("✅ Проверка пройдена успешно")
+            return 0
+        else:
+            print(f"\n❌ Найдено проблем: {len(fatal) + len(errors)} ошибок, {len(warnings)} предупреждений\n")
+            
+            # Выводим только ошибки (без предупреждений в тихом режиме)
+            if fatal:
+                print("🔴 КРИТИЧЕСКИЕ ОШИБКИ:")
+                for err in fatal:
+                    print(f"   {err}")
+            
+            if errors:
+                print("\n❌ ОШИБКИ:")
+                for err in errors:
+                    print(f"   {err}")
+            
+            return 1
+        
+    except KeyboardInterrupt:
+        print("\n❌ Прервано пользователем")
+        return 1
+    except Exception as e:
+        print(f"❌ Ошибка: {str(e)}")
+        return 1
+
+
 def main() -> int:
     """
     Основная функция запуска супер-линтера.
     
+    Поддерживает аргументы командной строки:
+        --path PATH    : Путь к папке для проверки
+        --silent       : Тихий режим (минимальный вывод)
+    
     Returns:
         Код возврата (0 - успех, 1 - ошибка)
     """
+    # Парсинг аргументов командной строки
+    parser = argparse.ArgumentParser(
+        description='Запуск супер-линтера для проверки кода',
+        add_help=True
+    )
+    parser.add_argument(
+        '--path',
+        type=str,
+        help='Путь к папке для проверки (по умолчанию - запрос в интерактивном режиме)'
+    )
+    parser.add_argument(
+        '--silent',
+        action='store_true',
+        help='Тихий режим - минимальный вывод'
+    )
+    
+    args = parser.parse_args()
+    
+    # Тихий режим с путём
+    if args.silent and args.path:
+        return run_linter_silent(args.path)
+    
+    # Если указан только --silent без пути - ошибка
+    if args.silent and not args.path:
+        print("❌ В тихом режиме необходимо указать --path")
+        return 1
+    
+    # Интерактивный режим (оригинальное поведение)
     try:
         print_header("Запуск супер-линтера")
         
@@ -55,7 +181,12 @@ def main() -> int:
         print("  C:\\Users\\...\\WT-AC-2025 (Kotkovets)\\students\\KotkovetsKirill\\task_05")
         print()
         
-        folder_path = input("Путь к папке: ").strip().strip('"').strip("'")
+        # Если путь передан через аргумент, используем его
+        if args.path:
+            folder_path = args.path
+            print(f"Используется путь из аргумента: {folder_path}")
+        else:
+            folder_path = input("Путь к папке: ").strip().strip('"').strip("'")
         
         if not folder_path:
             print("\n❌ Путь не может быть пустым")
