@@ -123,7 +123,10 @@ class GitDockerUtils:
                 "docker", "run", "--rm",
                 "-e", "RUN_LOCAL=true",
                 "-e", "DEFAULT_BRANCH=main",
-                "-e", "VALIDATE_ALL_CODEBASE=false",
+                "-e", "VALIDATE_ALL_CODEBASE=true",
+                # Использовать find вместо git для поиска файлов
+                # (решает проблему с кириллицей в именах файлов)
+                "-e", "USE_FIND_ALGORITHM=true",
                 # Конфигурация линтеров (как в GitHub Actions)
                 "-e", "LINTER_RULES_PATH=.",
                 "-e", "MARKDOWN_CONFIG_FILE=.markdownlint.yaml",
@@ -133,8 +136,9 @@ class GitDockerUtils:
             for linter in linters:
                 docker_cmd.extend(["-e", f"VALIDATE_{linter}=true"])
             
-            # Добавляем фильтр для конкретной папки (regex должен начинаться с .*)
-            filter_regex = f".*{relative_path}/.*"
+            # Добавляем фильтр для конкретной папки
+            # Regex совпадает с файлами в папке и всех подпапках
+            filter_regex = f".*{relative_path}.*"
             docker_cmd.extend(["-e", f"FILTER_REGEX_INCLUDE={filter_regex}"])
             
             # Исключаем папки (как в GitHub Actions)

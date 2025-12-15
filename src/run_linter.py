@@ -11,8 +11,65 @@ Run Super Linter Script
 
 import sys
 import argparse
+import threading
+import time
 from pathlib import Path
 from git_docker_utils import GitDockerUtils
+
+
+class Spinner:
+    """Минималистичный индикатор загрузки для консоли."""
+    
+    def __init__(self, message: str = "Проверка"):
+        """
+        Args:
+            message: Сообщение для отображения рядом со спиннером
+        """
+        self.message = message
+        self.frames = ['|', '/', '-', '\\']
+        self.running = False
+        self.thread = None
+        self._lock = threading.Lock()
+    
+    def _animate(self):
+        """Анимация спиннера в отдельном потоке."""
+        idx = 0
+        while self.running:
+            frame = self.frames[idx % len(self.frames)]
+            # \r - возврат каретки, перезаписываем строку
+            sys.stdout.write(f'\r{frame} {self.message}...')
+            sys.stdout.flush()
+            idx += 1
+            time.sleep(0.1)
+    
+    def __enter__(self):
+        """Context manager: начало работы спиннера."""
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager: остановка спиннера."""
+        self.stop()
+        return False
+    
+    def start(self):
+        """Запускает спиннер."""
+        with self._lock:
+            if not self.running:
+                self.running = True
+                self.thread = threading.Thread(target=self._animate, daemon=True)
+                self.thread.start()
+    
+    def stop(self):
+        """Останавливает спиннер и очищает строку."""
+        with self._lock:
+            if self.running:
+                self.running = False
+                if self.thread:
+                    self.thread.join(timeout=1.0)
+                # Очищаем строку со спиннером
+                sys.stdout.write('\r' + ' ' * (len(self.message) + 10) + '\r')
+                sys.stdout.flush()
 
 
 def print_separator(char: str = "═", length: int = 60) -> None:
@@ -76,12 +133,13 @@ def run_linter_silent(folder_path: str) -> int:
         # Краткая информация о запуске
         print(f"🔍 Проверка: {folder.name} ({len(file_stats)} типов файлов, {len(selected_linters)} линтеров)")
         
-        # Запуск линтера
-        success, output = utils.run_super_linter(
-            repo_root,
-            relative_path,
-            selected_linters
-        )
+        # Запуск линтера с индикатором загрузки
+        with Spinner("Проверка кода"):
+            success, output = utils.run_super_linter(
+                repo_root,
+                relative_path,
+                selected_linters
+            )
         
         if not success:
             print(output)
@@ -97,7 +155,7 @@ def run_linter_silent(folder_path: str) -> int:
         else:
             print(f"\n❌ Найдено проблем: {len(fatal) + len(errors)} ошибок, {len(warnings)} предупреждений\n")
             
-            # Выводим только ошибки (без предупреждений в тихом режиме)
+            # Выводим ошибки и предупреждения
             if fatal:
                 print("🔴 КРИТИЧЕСКИЕ ОШИБКИ:")
                 for err in fatal:
@@ -107,6 +165,11 @@ def run_linter_silent(folder_path: str) -> int:
                 print("\n❌ ОШИБКИ:")
                 for err in errors:
                     print(f"   {err}")
+            
+            if warnings:
+                print("\n⚠️  ПРЕДУПРЕЖДЕНИЯ:")
+                for warn in warnings:
+                    print(f"   {warn}")
             
             return 1
         
@@ -287,15 +350,15 @@ def main() -> int:
             print(output)
             return 1
         
-        # # ВРЕМЕННО: Выводим полный лог
-        # print_header("ПОЛНЫЙ ВЫВОД СУПЕР-ЛИНТЕРА (DEBUG)")
-        # print(output)
-        # print()
-        # print("=" * 60)
-        # print(f"Длина вывода: {len(output)} символов")
-        # print(f"Строк: {len(output.split(chr(10)))}")
-        # print("=" * 60)
-        # print()
+        # ВРЕМЕННО: Выводим полный лог
+        print_header("ПОЛНЫЙ ВЫВОД СУПЕР-ЛИНТЕРА (DEBUG)")
+        print(output)
+        print()
+        print("=" * 60)
+        print(f"Длина вывода: {len(output)} символов")
+        print(f"Строк: {len(output.split(chr(10)))}")
+        print("=" * 60)
+        print()
         
         # Парсим и форматируем результаты
         fatal, errors, warnings = utils.parse_linter_output(output)
