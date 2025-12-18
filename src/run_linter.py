@@ -145,33 +145,16 @@ def run_linter_silent(folder_path: str) -> int:
             print(output)
             return 1
         
-        # Парсим результаты
-        fatal, errors, warnings = utils.parse_linter_output(output)
+        # Выводим полный лог супер-линтера
+        print()
+        print(output)
         
-        # Краткий вывод результатов
-        if not fatal and not errors and not warnings:
-            print("✅ Проверка пройдена успешно")
-            return 0
-        else:
-            print(f"\n❌ Найдено проблем: {len(fatal) + len(errors)} ошибок, {len(warnings)} предупреждений\n")
-            
-            # Выводим ошибки и предупреждения
-            if fatal:
-                print("🔴 КРИТИЧЕСКИЕ ОШИБКИ:")
-                for err in fatal:
-                    print(f"   {err}")
-            
-            if errors:
-                print("\n❌ ОШИБКИ:")
-                for err in errors:
-                    print(f"   {err}")
-            
-            if warnings:
-                print("\n⚠️  ПРЕДУПРЕЖДЕНИЯ:")
-                for warn in warnings:
-                    print(f"   {warn}")
-            
+        # Определяем код возврата по наличию ошибок
+        if utils.has_linter_errors(output):
             return 1
+        else:
+            print("\n✅ Проверка завершена успешно")
+            return 0
         
     except KeyboardInterrupt:
         print("\n❌ Прервано пользователем")
@@ -350,29 +333,16 @@ def main() -> int:
             print(output)
             return 1
         
-        # ВРЕМЕННО: Выводим полный лог
-        print_header("ПОЛНЫЙ ВЫВОД СУПЕР-ЛИНТЕРА (DEBUG)")
-        print(output)
-        print()
-        print("=" * 60)
-        print(f"Длина вывода: {len(output)} символов")
-        print(f"Строк: {len(output.split(chr(10)))}")
-        print("=" * 60)
-        print()
-        
-        # Парсим и форматируем результаты
-        fatal, errors, warnings = utils.parse_linter_output(output)
-        formatted_results = utils.format_results(fatal, errors, warnings)
-        
-        # Вывод результатов
+        # Выводим полный лог супер-линтера
         print_header("Результаты проверки")
-        print(formatted_results)
+        print(output)
         print()
         
         # Возвращаем код выхода
-        if fatal or errors:
+        if utils.has_linter_errors(output):
             return 1
         else:
+            print("✅ Проверка завершена успешно")
             return 0
         
     except KeyboardInterrupt:

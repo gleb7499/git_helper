@@ -172,131 +172,23 @@ class GitDockerUtils:
         except Exception as e:
             return False, f"❌ Ошибка запуска Docker: {str(e)}"
     
-    def parse_linter_output(self, output: str) -> Tuple[List[str], List[str], List[str]]:
+    def has_linter_errors(self, output: str) -> bool:
         """
-        Парсит вывод супер-линтера и группирует по типам.
-        Извлекает детальные ошибки из блоков Stderr contents.
+        Проверяет, содержит ли вывод супер-линтера ошибки линтинга.
         
         Args:
             output: Вывод супер-линтера
             
         Returns:
-            Tuple (fatal_errors, errors, warnings)
+            True если найдены ошибки линтинга
         """
-        fatal_errors = []
-        errors = []
-        warnings = []
-        
-        lines = output.split("\n")
-        i = 0
-        current_linter = None
-        
-        while i < len(lines):
-            line = lines[i].strip()
-            
-            # Определяем текущий линтер
-            if "[INFO]   Linting" in line and "items..." in line:
-                # Извлекаем имя: "2025-12-14 11:04:03 [INFO]   Linting MARKDOWN items..."
-                parts = line.split("Linting")
-                if len(parts) > 1:
-                    current_linter = parts[1].replace("items...", "").strip()
-            
-            # Ищем блок с детальными ошибками "Stderr contents for"
-            if "Stderr contents for" in line:
-                linter_name = current_linter or "Unknown"
-                i += 1
-                
-                # Пропускаем разделитель "------"
-                if i < len(lines) and "------" in lines[i]:
-                    i += 1
-                
-                # Читаем строки до следующего "------"
-                while i < len(lines):
-                    stderr_line = lines[i].strip()
-                    if "------" in stderr_line:
-                        break
-                    if stderr_line and len(stderr_line) > 5:
-                        # Это реальная ошибка линтера
-                        errors.append(f"[{linter_name}] {stderr_line}")
-                    i += 1
-                i += 1
-                continue
-            
-            # Ищем строки с [ERROR] (общие сообщения)
-            if "[ERROR]" in line:
-                # Пропускаем итоговые/сводные сообщения
-                if "Found errors when linting" in line:
-                    pass
-                elif "Super-linter detected linting errors" in line:
-                    pass
-                elif "Errors found in" in line:
-                    # Например: "Errors found in MARKDOWN" - итоговое сообщение
-                    pass
-                elif "0 error" not in line.lower():
-                    errors.append(line)
-            
-            # Ищем WARNING (пропускаем технические)
-            elif "[WARN]" in line or "[WARNING]" in line:
-                if "0 warning" not in line.lower():
-                    if "DeprecationWarning" not in line and "chktex" not in line and "punycode" not in line:
-                        warnings.append(line)
-            
-            # Ищем FATAL
-            elif "[FATAL]" in line:
-                fatal_errors.append(line)
-            
-            i += 1
-        
-        return fatal_errors, errors, warnings
-    
-    def format_results(
-        self,
-        fatal_errors: List[str],
-        errors: List[str],
-        warnings: List[str]
-    ) -> str:
-        """
-        Форматирует результаты проверки для вывода пользователю.
-        
-        Args:
-            fatal_errors: Список критических ошибок
-            errors: Список ошибок
-            warnings: Список предупреждений
-            
-        Returns:
-            Отформатированная строка результатов
-        """
-        if not fatal_errors and not errors and not warnings:
-            return "✅ Проверка завершена успешно, ошибок не обнаружено"
-        
-        result_lines = []
-        
-        if fatal_errors:
-            result_lines.append("\n🔴 КРИТИЧЕСКИЕ ОШИБКИ:")
-            result_lines.append("=" * 60)
-            result_lines.extend(fatal_errors)
-            result_lines.append("")
-        
-        if errors:
-            result_lines.append("\n❌ ОШИБКИ:")
-            result_lines.append("=" * 60)
-            result_lines.extend(errors)
-            result_lines.append("")
-        
-        if warnings:
-            result_lines.append("\n⚠️  ПРЕДУПРЕЖДЕНИЯ:")
-            result_lines.append("=" * 60)
-            result_lines.extend(warnings)
-            result_lines.append("")
-        
-        # Статистика
-        total = len(fatal_errors) + len(errors) + len(warnings)
-        result_lines.append(f"\n📊 Итого: {total} проблем(ы)")
-        result_lines.append(f"   🔴 Критических: {len(fatal_errors)}")
-        result_lines.append(f"   ❌ Ошибок: {len(errors)}")
-        result_lines.append(f"   ⚠️  Предупреждений: {len(warnings)}")
-        
-        return "\n".join(result_lines)
+        # Ищем маркеры ошибок супер-линтера
+        error_markers = [
+            "[ERROR]   Found errors when linting",
+            "[ERROR]   Super-linter detected linting errors",
+            "Errors found in"
+        ]
+        return any(marker in output for marker in error_markers)
     
     def get_extension_to_linter_mapping(self) -> dict:
         """
