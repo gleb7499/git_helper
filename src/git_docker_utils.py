@@ -1,8 +1,8 @@
 """
 Git Docker Utilities Module
 
-Модуль для работы с Docker и Git репозиториями.
-Поддерживает поиск корня репозитория, запуск супер-линтера и обработку результатов.
+Module for working with Docker and Git repositories.
+Supports repository root discovery, super-linter runs, and result processing.
 """
 
 import os
@@ -12,25 +12,25 @@ from typing import Optional, Tuple, List
 
 
 class GitDockerUtils:
-    """Утилиты для работы с Git и Docker."""
+    """Utilities for working with Git and Docker."""
     
     def __init__(self):
-        """Инициализация утилит."""
+        """Initialize the utilities."""
         self.super_linter_image = "ghcr.io/super-linter/super-linter:v6"
     
     def find_git_root(self, start_path: str) -> Optional[Path]:
         """
-        Находит корень Git репозитория, поднимаясь вверх по дереву каталогов.
+        Find the Git repository root by walking up the directory tree.
         
         Args:
-            start_path: Путь, от которого начинать поиск
+            start_path: Path to start the search from
             
         Returns:
-            Path к корню репозитория или None если не найден
+            Path to the repository root or None if not found
         """
         current = Path(start_path).resolve()
         
-        # Поднимаемся вверх до тех пор, пока не найдем .git
+        # Go up until .git is found
         while current != current.parent:
             git_dir = current / ".git"
             if git_dir.exists():
@@ -41,26 +41,26 @@ class GitDockerUtils:
     
     def get_relative_path(self, full_path: str, repo_root: Path) -> str:
         """
-        Вычисляет относительный путь от корня репозитория.
+        Compute the path relative to the repository root.
         
         Args:
-            full_path: Полный путь к папке
-            repo_root: Корень репозитория
+            full_path: Full path to the folder
+            repo_root: Repository root
             
         Returns:
-            Относительный путь в Unix формате
+            Relative path in Unix format
         """
         full = Path(full_path).resolve()
         relative = full.relative_to(repo_root)
-        # Преобразуем в Unix формат (для Docker)
+        # Convert to Unix format (for Docker)
         return str(relative).replace("\\", "/")
     
     def check_docker_running(self) -> Tuple[bool, str]:
         """
-        Проверяет, запущен ли Docker.
+        Check whether Docker is running.
         
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             result = subprocess.run(
@@ -84,14 +84,14 @@ class GitDockerUtils:
     
     def check_config_exists(self, repo_root: Path, config_name: str = ".markdownlint.yaml") -> bool:
         """
-        Проверяет наличие конфигурационного файла в корне репозитория.
+        Check for a configuration file in the repository root.
         
         Args:
-            repo_root: Корень репозитория
-            config_name: Имя конфига
+            repo_root: Repository root
+            config_name: Config file name
             
         Returns:
-            True если файл существует
+            True if the file exists
         """
         config_path = repo_root / config_name
         return config_path.exists()
@@ -103,56 +103,56 @@ class GitDockerUtils:
         linters: Optional[List[str]] = None
     ) -> Tuple[bool, str]:
         """
-        Запускает супер-линтер через Docker.
+        Run the super-linter via Docker.
         
         Args:
-            repo_root: Корень Git репозитория
-            relative_path: Относительный путь к проверяемой папке
-            linters: Список линтеров для активации (по умолчанию только MARKDOWN)
+            repo_root: Git repository root
+            relative_path: Relative path to the folder to check
+            linters: List of linters to activate (MARKDOWN only by default)
             
         Returns:
-            Tuple (успех, вывод команды)
+            Tuple (success, command output)
         """
         try:
-            # Формируем команду Docker
+            # Build the Docker command
             if linters is None:
                 linters = ["MARKDOWN"]
             
-            # Базовые параметры
+            # Base parameters
             docker_cmd = [
                 "docker", "run", "--rm",
                 "-e", "RUN_LOCAL=true",
                 "-e", "DEFAULT_BRANCH=main",
                 "-e", "VALIDATE_ALL_CODEBASE=true",
-                # Использовать find вместо git для поиска файлов
-                # (решает проблему с кириллицей в именах файлов)
+                # Use find instead of git to search for files
+                # (solves the Cyrillic file names problem)
                 "-e", "USE_FIND_ALGORITHM=true",
-                # Конфигурация линтеров (как в GitHub Actions)
+                # Linter configuration (as in GitHub Actions)
                 "-e", "LINTER_RULES_PATH=.",
                 "-e", "MARKDOWN_CONFIG_FILE=.markdownlint.yaml",
             ]
             
-            # Добавляем активацию линтеров
+            # Add linter activation
             for linter in linters:
                 docker_cmd.extend(["-e", f"VALIDATE_{linter}=true"])
             
-            # Добавляем фильтр для конкретной папки
-            # Regex совпадает с файлами в папке и всех подпапках
+            # Add a filter for the specific folder
+            # Regex matches files in the folder and all subfolders
             filter_regex = f".*{relative_path}.*"
             docker_cmd.extend(["-e", f"FILTER_REGEX_INCLUDE={filter_regex}"])
             
-            # Исключаем папки (как в GitHub Actions)
+            # Exclude folders (as in GitHub Actions)
             docker_cmd.extend(["-e", "FILTER_REGEX_EXCLUDE=(node_modules/|tools/ci/out/)"])
             
-            # Монтируем корень репозитория
-            # Используем абсолютный путь для Windows
+            # Mount the repository root
+            # Use an absolute path for Windows
             mount_path = str(repo_root).replace("\\", "/")
             docker_cmd.extend(["-v", f"{mount_path}:/tmp/lint"])
             
-            # Добавляем образ
+            # Add the image
             docker_cmd.append(self.super_linter_image)
             
-            # Запускаем Docker
+            # Run Docker
             result = subprocess.run(
                 docker_cmd,
                 capture_output=True,
@@ -164,7 +164,7 @@ class GitDockerUtils:
                 shell=False
             )
             
-            # Собираем вывод
+            # Collect the output
             output = result.stdout + result.stderr
             
             return True, output
@@ -174,15 +174,15 @@ class GitDockerUtils:
     
     def has_linter_errors(self, output: str) -> bool:
         """
-        Проверяет, содержит ли вывод супер-линтера ошибки линтинга.
+        Check whether the super-linter output contains linting errors.
         
         Args:
-            output: Вывод супер-линтера
+            output: Super-linter output
             
         Returns:
-            True если найдены ошибки линтинга
+            True if linting errors are found
         """
-        # Ищем маркеры ошибок супер-линтера
+        # Look for super-linter error markers
         error_markers = [
             "[ERROR]   Found errors when linting",
             "[ERROR]   Super-linter detected linting errors",
@@ -192,10 +192,10 @@ class GitDockerUtils:
     
     def get_extension_to_linter_mapping(self) -> dict:
         """
-        Возвращает маппинг расширений файлов на линтеры супер-линтера.
+        Return the mapping of file extensions to super-linter linters.
         
         Returns:
-            Словарь {расширение: список_линтеров}
+            Dictionary {extension: list_of_linters}
         """
         return {
             ".md": ["MARKDOWN"],
@@ -221,37 +221,37 @@ class GitDockerUtils:
     
     def scan_directory_for_file_types(self, directory: Path) -> dict:
         """
-        Сканирует директорию и определяет все типы файлов.
-        Исключает node_modules и tools/ci/out.
+        Scan a directory and determine all file types.
+        Excludes node_modules and tools/ci/out.
         
         Args:
-            directory: Путь к директории для сканирования
+            directory: Path to the directory to scan
             
         Returns:
-            Словарь {расширение: количество_файлов}
+            Dictionary {extension: file_count}
         """
         file_types = {}
         
-        # Папки для исключения (как в GitHub Actions)
+        # Folders to exclude (as in GitHub Actions)
         excluded_dirs = {'node_modules', 'tools'}
         
         try:
-            # Рекурсивно обходим все файлы
+            # Recursively walk all files
             for file_path in directory.rglob("*"):
                 if file_path.is_file():
-                    # Проверяем, находится ли файл в исключенных директориях
+                    # Check if the file is in excluded directories
                     parts = file_path.relative_to(directory).parts
                     if any(excluded_dir in parts for excluded_dir in excluded_dirs):
                         continue
                     
-                    # Получаем расширение (в нижнем регистре)
+                    # Get the extension (lowercased)
                     ext = file_path.suffix.lower()
                     
-                    # Пропускаем файлы без расширения и скрытые файлы
+                    # Skip files without an extension and hidden files
                     if not ext or file_path.name.startswith("."):
                         continue
                     
-                    # Считаем файлы по расширениям
+                    # Count files by extension
                     file_types[ext] = file_types.get(ext, 0) + 1
             
             return file_types
@@ -262,24 +262,24 @@ class GitDockerUtils:
     
     def detect_linters_from_files(self, directory: Path) -> Tuple[List[str], dict]:
         """
-        Автоматически определяет нужные линтеры на основе найденных файлов.
+        Automatically determine the required linters based on found files.
         
         Args:
-            directory: Путь к директории для анализа
+            directory: Path to the directory to analyze
             
         Returns:
-            Tuple (список_линтеров, статистика_файлов)
+            Tuple (list_of_linters, file_statistics)
         """
-        # Сканируем директорию
+        # Scan the directory
         file_types = self.scan_directory_for_file_types(directory)
         
         if not file_types:
             return [], {}
         
-        # Получаем маппинг расширений на линтеры
+        # Get the extension-to-linter mapping
         ext_to_linters = self.get_extension_to_linter_mapping()
         
-        # Собираем уникальные линтеры
+        # Collect unique linters
         detected_linters = set()
         for ext, count in file_types.items():
             if ext in ext_to_linters:
@@ -289,13 +289,13 @@ class GitDockerUtils:
     
     def get_linter_description(self, linter_code: str) -> str:
         """
-        Возвращает описание линтера.
+        Return the linter description.
         
         Args:
-            linter_code: Код линтера
+            linter_code: Linter code
             
         Returns:
-            Описание линтера
+            Linter description
         """
         descriptions = {
             "MARKDOWN": "Markdown",

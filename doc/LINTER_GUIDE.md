@@ -1,45 +1,45 @@
-# 🔍 Руководство по использованию супер-линтера
+# 🔍 Super-Linter Usage Guide
 
-## Что это?
+## What is it?
 
-Супер-линтер - инструмент для автоматической проверки качества кода. Запускается через Docker и поддерживает множество языков программирования.
+Super-linter is a tool for automatic code quality checking. It runs via Docker and supports many programming languages.
 
-## Требования
+## Requirements
 
-- ✅ Docker Desktop установлен и запущен
-- ✅ Проверяемая папка находится в Git репозитории
-- ✅ (Опционально) `.markdownlint.yaml` в корне репозитория для настройки правил
+- ✅ Docker Desktop installed and running
+- ✅ The checked folder is inside a Git repository
+- ✅ (Optional) `.markdownlint.yaml` in the repository root for rule configuration
 
-## Как использовать
+## How to Use
 
-### Шаг 1: Запуск
+### Step 1: Launch
 
 ```bash
-git_helper.bat → Выбрать пункт 6
+git_helper.bat → Choose option 6
 ```
 
-### Шаг 2: Укажите путь к папке
+### Step 2: Specify the folder path
 
-Пример:
+Example:
 ```
 C:\Users\kseni\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05
 ```
 
-**Важно:**
-- Путь должен быть ВНУТРИ Git репозитория
-- Скрипт автоматически найдет корень репозитория (папку с .git)
-- Проверка запускается из корня, но анализируется только указанная папка
+**Important:**
+- The path must be INSIDE a Git repository
+- The script will automatically find the repository root (the folder with .git)
+- The check runs from the root, but only the specified folder is analyzed
 
-### Шаг 3: Автоматический выбор линтеров
+### Step 3: Automatic linter selection
 
-**Линтеры выбираются автоматически** на основе найденных типов файлов!
+**Linters are selected automatically** based on the found file types!
 
-Скрипт:
-1. Сканирует все файлы в указанной папке (рекурсивно)
-2. Определяет расширения файлов
-3. Автоматически выбирает соответствующие линтеры
+The script:
+1. Scans all files in the specified folder (recursively)
+2. Determines file extensions
+3. Automatically selects the corresponding linters
 
-Поддерживаемые расширения:
+Supported extensions:
 - **.md, .markdown** → Markdown
 - **.js, .jsx** → JavaScript/ES
 - **.ts, .tsx** → TypeScript
@@ -53,137 +53,137 @@ C:\Users\kseni\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kotko
 - **.sql** → SQL
 - **.dockerfile** → Dockerfile
 
-**Пример вывода:**
+**Example output:**
 ```
-📊 Статистика файлов:
-   .md             — 5 файл(ов)
-   .html           — 3 файл(ов)
-   .css            — 2 файл(ов)
-   .js             — 1 файл(ов)
+📊 File statistics:
+   .md             — 5 file(s)
+   .html           — 3 file(s)
+   .css            — 2 file(s)
+   .js             — 1 file(s)
 
-🔍 Автоматически выбрано линтеров: 4
+🔍 Automatically selected linters: 4
    ✓ Markdown
    ✓ HTML
    ✓ CSS/SCSS
    ✓ JavaScript/ES
 ```
 
-### Шаг 4: Подтверждение и запуск
+### Step 4: Confirmation and launch
 
-Система покажет параметры запуска:
-- Корень репозитория
-- Проверяемая папка (относительный путь)
-- Количество типов файлов
-- Количество выбранных линтеров
+The system shows the launch parameters:
+- Repository root
+- Checked folder (relative path)
+- Number of file types
+- Number of selected linters
 
-После подтверждения запустится Docker-контейнер с проверкой.
+After confirmation, a Docker container with the check is launched.
 
-### Шаг 5: Результаты
+### Step 5: Results
 
-Вывод группируется по типам:
-- 🔴 **FATAL** - критические ошибки
-- ❌ **ERROR** - ошибки
-- ⚠️ **WARNING** - предупреждения
+Output is grouped by type:
+- 🔴 **FATAL** - critical errors
+- ❌ **ERROR** - errors
+- ⚠️ **WARNING** - warnings
 
-## Конфигурация линтера
+## Linter Configuration
 
-### Для Markdown
+### For Markdown
 
-Создайте файл `.markdownlint.yaml` в **корне репозитория**:
+Create a `.markdownlint.yaml` file in the **repository root**:
 
 ```yaml
-# Пример конфигурации
-MD013: false  # Отключить проверку длины строки
-MD033: false  # Разрешить HTML теги
-MD041: false  # Не требовать H1 в начале
+# Example configuration
+MD013: false  # Disable line length check
+MD033: false  # Allow HTML tags
+MD041: false  # Do not require H1 at the start
 ```
 
-### Для других языков
+### For other languages
 
-Супер-линтер поддерживает множество конфигов:
-- `.eslintrc.json` - для JavaScript
-- `.flake8` - для Python Flake8
-- `.pylintrc` - для Python Pylint
-- И т.д.
+Super-linter supports many configs:
+- `.eslintrc.json` - for JavaScript
+- `.flake8` - for Python Flake8
+- `.pylintrc` - for Python Pylint
+- Etc.
 
-Все конфиги должны быть в **корне репозитория**.
+All configs must be in the **repository root**.
 
-## Как работает
+## How It Works
 
-1. **Поиск корня репозитория**
-   - Скрипт поднимается по дереву каталогов
-   - Ищет папку `.git`
-   - Это и есть корень репозитория
+1. **Finding the repository root**
+   - The script walks up the directory tree
+   - Looks for a `.git` folder
+   - This is the repository root
 
-2. **Вычисление относительного пути**
-   - Если корень: `C:\...\WT-AC-2025 (Kotkovets)`
-   - Проверяемая папка: `C:\...\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05`
-   - Относительный путь: `students/KotkovetsKirill/task_05`
+2. **Computing the relative path**
+   - Root: `C:\...\WT-AC-2025 (Kotkovets)`
+   - Checked folder: `C:\...\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05`
+   - Relative path: `students/KotkovetsKirill/task_05`
 
-3. **Запуск Docker**
-   - Монтируется корень репозитория в `/tmp/lint`
-   - Используется фильтр `FILTER_REGEX_INCLUDE`
-   - Проверяются только файлы в указанной папке
+3. **Docker launch**
+   - The repository root is mounted to `/tmp/lint`
+   - The `FILTER_REGEX_INCLUDE` filter is used
+   - Only files in the specified folder are checked
 
-4. **Обработка результатов**
-   - Фильтруются только WARNING, ERROR, FATAL
-   - Группировка по типам
-   - Подсчет статистики
+4. **Result processing**
+   - Only WARNING, ERROR, FATAL are filtered
+   - Grouping by type
+   - Statistics counting
 
-## Примеры использования
+## Usage Examples
 
-### Проверить только Markdown
-
-```
-Путь: C:\...\task_05
-Линтеры: [Enter] (по умолчанию Markdown)
-```
-
-### Проверить Markdown + Python
+### Check only Markdown
 
 ```
-Путь: C:\...\task_05
-Линтеры: 1,3 (Markdown + Python Pylint)
+Path: C:\...\task_05
+Linters: [Enter] (Markdown by default)
 ```
 
-### Полная проверка
+### Check Markdown + Python
 
 ```
-Путь: C:\...\task_05
-Линтеры: 1,2,3,6,7,8 (Markdown, JS, Python, HTML, CSS, JSON)
+Path: C:\...\task_05
+Linters: 1,3 (Markdown + Python Pylint)
 ```
 
-## Решение проблем
-
-### Docker не запущен
+### Full check
 
 ```
-❌ Docker не отвечает. Убедитесь, что Docker Desktop запущен.
+Path: C:\...\task_05
+Linters: 1,2,3,6,7,8 (Markdown, JS, Python, HTML, CSS, JSON)
 ```
 
-**Решение:** Запустите Docker Desktop и дождитесь его полной загрузки.
+## Troubleshooting
 
-### Git репозиторий не найден
-
-```
-❌ Не удалось найти корень Git репозитория
-```
-
-**Решение:** Убедитесь, что папка находится внутри клонированного Git репозитория.
-
-### Конфиг не найден
+### Docker not running
 
 ```
-⚠️ Конфигурация .markdownlint.yaml не найдена в корне
+❌ Docker is not responding. Make sure Docker Desktop is running.
 ```
 
-**Это нормально!** Супер-линтер будет использовать настройки по умолчанию.
+**Solution:** Start Docker Desktop and wait for it to fully load.
 
-Если хотите свои правила - создайте конфиг в корне репозитория.
+### Git repository not found
 
-## Технические детали
+```
+❌ Could not find the Git repository root
+```
 
-### Команда Docker
+**Solution:** Make sure the folder is inside a cloned Git repository.
+
+### Config not found
+
+```
+⚠️ Configuration .markdownlint.yaml not found in the root
+```
+
+**This is normal!** Super-linter will use default settings.
+
+If you want your own rules - create a config in the repository root.
+
+## Technical Details
+
+### Docker command
 
 ```bash
 docker run --rm \
@@ -196,22 +196,22 @@ docker run --rm \
   ghcr.io/super-linter/super-linter:v6
 ```
 
-### Почему запуск из корня?
+### Why run from the root?
 
-- Супер-линтер требует корень репозитория как точку отсчета
-- Конфигурационные файлы находятся в корне
-- Git метаданные (.git) нужны для определения измененных файлов
+- Super-linter requires the repository root as the reference point
+- Configuration files are located in the root
+- Git metadata (.git) is needed to determine changed files
 
-### Относительные пути
+### Relative paths
 
-Все пути в Docker контейнере относительны от `/tmp/lint` (корень репозитория).
+All paths in the Docker container are relative to `/tmp/lint` (repository root).
 
-## Полезные ссылки
+## Useful Links
 
 - [Super Linter GitHub](https://github.com/super-linter/super-linter)
-- [Документация по конфигурации](https://github.com/super-linter/super-linter#configuration)
-- [Список поддерживаемых языков](https://github.com/super-linter/super-linter#supported-linters)
+- [Configuration documentation](https://github.com/super-linter/super-linter#configuration)
+- [List of supported languages](https://github.com/super-linter/super-linter#supported-linters)
 
 ---
 
-**Дата:** 14 декабря 2025 г.
+**Date:** December 14, 2025

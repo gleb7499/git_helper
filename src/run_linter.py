@@ -1,12 +1,12 @@
 """
 Run Super Linter Script
 
-Интерактивный скрипт для запуска супер-линтера через Docker.
-Проверяет код в указанной папке репозитория.
+Interactive script for running the super-linter via Docker.
+Checks code in the specified repository folder.
 
-Поддерживает два режима:
-1. Интерактивный (по умолчанию) - с подробным выводом и запросом пути
-2. Тихий режим (--silent) - минимальный вывод, путь передаётся через --path
+Supports two modes:
+1. Interactive (default) - detailed output and path prompt
+2. Quiet mode (--silent) - minimal output, path passed via --path
 """
 
 import sys
@@ -18,12 +18,12 @@ from git_docker_utils import GitDockerUtils
 
 
 class Spinner:
-    """Минималистичный индикатор загрузки для консоли."""
+    """Minimal console loading spinner."""
     
     def __init__(self, message: str = "Проверка"):
         """
         Args:
-            message: Сообщение для отображения рядом со спиннером
+            message: Message to display next to the spinner
         """
         self.message = message
         self.frames = ['|', '/', '-', '\\']
@@ -32,28 +32,28 @@ class Spinner:
         self._lock = threading.Lock()
     
     def _animate(self):
-        """Анимация спиннера в отдельном потоке."""
+        """Spinner animation in a separate thread."""
         idx = 0
         while self.running:
             frame = self.frames[idx % len(self.frames)]
-            # \r - возврат каретки, перезаписываем строку
+            # \r - carriage return, overwrite the line
             sys.stdout.write(f'\r{frame} {self.message}...')
             sys.stdout.flush()
             idx += 1
             time.sleep(0.1)
     
     def __enter__(self):
-        """Context manager: начало работы спиннера."""
+        """Context manager: start the spinner."""
         self.start()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager: остановка спиннера."""
+        """Context manager: stop the spinner."""
         self.stop()
         return False
     
     def start(self):
-        """Запускает спиннер."""
+        """Starts the spinner."""
         with self._lock:
             if not self.running:
                 self.running = True
@@ -61,24 +61,24 @@ class Spinner:
                 self.thread.start()
     
     def stop(self):
-        """Останавливает спиннер и очищает строку."""
+        """Stops the spinner and clears the line."""
         with self._lock:
             if self.running:
                 self.running = False
                 if self.thread:
                     self.thread.join(timeout=1.0)
-                # Очищаем строку со спиннером
+                # Clear the spinner line
                 sys.stdout.write('\r' + ' ' * (len(self.message) + 10) + '\r')
                 sys.stdout.flush()
 
 
 def print_separator(char: str = "═", length: int = 60) -> None:
-    """Печатает разделитель."""
+    """Prints a separator."""
     print(char * length)
 
 
 def print_header(text: str) -> None:
-    """Печатает заголовок раздела."""
+    """Prints a section header."""
     print()
     print_separator()
     print(f"🔍 {text}")
@@ -88,18 +88,18 @@ def print_header(text: str) -> None:
 
 def run_linter_silent(folder_path: str) -> int:
     """
-    Запуск линтера в тихом режиме (минимальный вывод).
+    Run the linter in quiet mode (minimal output).
     
     Args:
-        folder_path: Путь к папке для проверки
+        folder_path: Path to the folder to check
         
     Returns:
-        Код возврата (0 - успех, 1 - ошибка)
+        Exit code (0 - success, 1 - error)
     """
     try:
         utils = GitDockerUtils()
         
-        # Валидация пути
+        # Path validation
         folder = Path(folder_path).resolve()
         if not folder.exists():
             print(f"❌ Папка не существует: {folder_path}")
@@ -109,13 +109,13 @@ def run_linter_silent(folder_path: str) -> int:
             print(f"❌ Указанный путь не является папкой: {folder_path}")
             return 1
         
-        # Проверка Docker (тихо)
+        # Docker check (quiet)
         docker_ok, _ = utils.check_docker_running()
         if not docker_ok:
             print("❌ Docker не запущен. Запустите Docker Desktop.")
             return 1
         
-        # Поиск корня репозитория
+        # Find the repository root
         repo_root = utils.find_git_root(str(folder))
         if not repo_root:
             print(f"❌ Git репозиторий не найден для: {folder.name}")
@@ -123,17 +123,17 @@ def run_linter_silent(folder_path: str) -> int:
         
         relative_path = utils.get_relative_path(str(folder), repo_root)
         
-        # Автоопределение линтеров
+        # Automatic linter detection
         selected_linters, file_stats = utils.detect_linters_from_files(folder)
         
         if not selected_linters:
             print("⚠️  Нет файлов для проверки")
             return 1
         
-        # Краткая информация о запуске
+        # Brief launch information
         print(f"🔍 Проверка: {folder.name} ({len(file_stats)} типов файлов, {len(selected_linters)} линтеров)")
         
-        # Запуск линтера с индикатором загрузки
+        # Run the linter with a loading indicator
         with Spinner("Проверка кода"):
             success, output = utils.run_super_linter(
                 repo_root,
@@ -145,11 +145,11 @@ def run_linter_silent(folder_path: str) -> int:
             print(output)
             return 1
         
-        # Выводим полный лог супер-линтера
+        # Show the full super-linter log
         print()
         print(output)
         
-        # Определяем код возврата по наличию ошибок
+        # Determine the exit code based on errors found
         if utils.has_linter_errors(output):
             return 1
         else:
@@ -166,16 +166,16 @@ def run_linter_silent(folder_path: str) -> int:
 
 def main() -> int:
     """
-    Основная функция запуска супер-линтера.
+    Main super-linter launch function.
     
-    Поддерживает аргументы командной строки:
-        --path PATH    : Путь к папке для проверки
-        --silent       : Тихий режим (минимальный вывод)
+    Supports command-line arguments:
+        --path PATH    : Path to the folder to check
+        --silent       : Quiet mode (minimal output)
     
     Returns:
-        Код возврата (0 - успех, 1 - ошибка)
+        Exit code (0 - success, 1 - error)
     """
-    # Парсинг аргументов командной строки
+    # Command-line argument parsing
     parser = argparse.ArgumentParser(
         description='Запуск супер-линтера для проверки кода',
         add_help=True
@@ -193,23 +193,23 @@ def main() -> int:
     
     args = parser.parse_args()
     
-    # Тихий режим с путём
+    # Quiet mode with path
     if args.silent and args.path:
         return run_linter_silent(args.path)
     
-    # Если указан только --silent без пути - ошибка
+    # If only --silent is given without a path - error
     if args.silent and not args.path:
         print("❌ В тихом режиме необходимо указать --path")
         return 1
     
-    # Интерактивный режим (оригинальное поведение)
+    # Interactive mode (original behavior)
     try:
         print_header("Запуск супер-линтера")
         
-        # Инициализация утилит
+        # Initialize the utilities
         utils = GitDockerUtils()
         
-        # Шаг 1: Проверка Docker
+        # Step 1: Docker check
         print("🔹 Шаг 1/6: Проверка Docker")
         docker_ok, docker_msg = utils.check_docker_running()
         print(docker_msg)
@@ -220,14 +220,14 @@ def main() -> int:
         
         print()
         
-        # Шаг 2: Получение пути к папке
+        # Step 2: Get the folder path
         print("🔹 Шаг 2/6: Укажите путь к папке для проверки")
         print()
         print("Пример:")
         print("  C:\\Users\\...\\WT-AC-2025 (Kotkovets)\\students\\KotkovetsKirill\\task_05")
         print()
         
-        # Если путь передан через аргумент, используем его
+        # If the path is passed via argument, use it
         if args.path:
             folder_path = args.path
             print(f"Используется путь из аргумента: {folder_path}")
@@ -250,7 +250,7 @@ def main() -> int:
         print(f"\n✅ Папка найдена: {folder.name}")
         print()
         
-        # Шаг 3: Поиск корня репозитория
+        # Step 3: Find the repository root
         print("🔹 Шаг 3/6: Поиск корня Git репозитория")
         
         repo_root = utils.find_git_root(str(folder))
@@ -262,12 +262,12 @@ def main() -> int:
         
         print(f"✅ Корень репозитория: {repo_root}")
         
-        # Вычисляем относительный путь
+        # Compute the relative path
         relative_path = utils.get_relative_path(str(folder), repo_root)
         print(f"✅ Относительный путь: {relative_path}")
         print()
         
-        # Шаг 4: Проверка конфигурации
+        # Step 4: Configuration check
         print("🔹 Шаг 4/6: Проверка конфигурации")
         
         has_config = utils.check_config_exists(repo_root, ".markdownlint.yaml")
@@ -279,7 +279,7 @@ def main() -> int:
         
         print()
         
-        # Шаг 5: Автоматическое определение линтеров
+        # Step 5: Automatic linter detection
         print("🔹 Шаг 5/6: Анализ файлов и выбор линтеров")
         print()
         print("⏳ Сканирование файлов в папке...")
@@ -291,13 +291,13 @@ def main() -> int:
             print("   Убедитесь, что в папке есть файлы с поддерживаемыми расширениями")
             return 1
         
-        # Показываем статистику найденных файлов
+        # Show the found files statistics
         print()
         print("📊 Статистика файлов:")
         for ext, count in sorted(file_stats.items(), key=lambda x: x[1], reverse=True):
             print(f"   {ext:15s} — {count} файл(ов)")
         
-        # Показываем автоматически выбранные линтеры
+        # Show the automatically selected linters
         print()
         print(f"🔍 Автоматически выбрано линтеров: {len(selected_linters)}")
         for linter in selected_linters:
@@ -306,7 +306,7 @@ def main() -> int:
         
         print()
         
-        # Показываем параметры запуска
+        # Show the launch parameters
         print_separator("─")
         print("📋 Параметры запуска:")
         print(f"   Репозиторий: {repo_root}")
@@ -316,7 +316,7 @@ def main() -> int:
         print_separator("─")
         print()
         
-        # Шаг 6: Запуск линтера
+        # Step 6: Run the linter
         print_header("Шаг 6/6: Запуск супер-линтера")
         
         print("⏳ Выполняется проверка...")
@@ -333,12 +333,12 @@ def main() -> int:
             print(output)
             return 1
         
-        # Выводим полный лог супер-линтера
+        # Show the full super-linter log
         print_header("Результаты проверки")
         print(output)
         print()
         
-        # Возвращаем код выхода
+        # Return the exit code
         if utils.has_linter_errors(output):
             return 1
         else:

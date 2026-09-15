@@ -1,11 +1,11 @@
-# Автоматический выбор линтеров - Сводка изменений
+# Automatic Linter Selection - Change Summary
 
-## Что изменилось
+## What Changed
 
-### 1. Новые методы в `git_docker_utils.py`
+### 1. New methods in `git_docker_utils.py`
 
-#### `get_extension_to_linter_mapping()` 
-Маппинг расширений файлов на линтеры супер-линтера:
+#### `get_extension_to_linter_mapping()`
+Maps file extensions to super-linter linters:
 - `.md` → Markdown
 - `.js, .jsx` → JavaScript
 - `.py` → Python (Pylint + Flake8)
@@ -16,116 +16,116 @@
 - `.ts, .tsx` → TypeScript
 - `.xml` → XML
 - `.sql` → SQL
-- И другие...
+- And others...
 
 #### `scan_directory_for_file_types(directory)`
-Рекурсивно сканирует папку и подсчитывает файлы по расширениям:
-- Проходит по всем файлам в подкаталогах
-- Считает количество файлов каждого типа
-- Пропускает скрытые файлы и файлы без расширений
-- Возвращает `{расширение: количество}`
+Recursively scans a folder and counts files by extension:
+- Walks all files in subdirectories
+- Counts the number of files of each type
+- Skips hidden files and files without extensions
+- Returns `{extension: count}`
 
 #### `detect_linters_from_files(directory)`
-Главная функция автоматического определения:
-- Сканирует директорию
-- Сопоставляет расширения с линтерами
-- Возвращает список уникальных линтеров и статистику файлов
+Main automatic detection function:
+- Scans the directory
+- Maps extensions to linters
+- Returns a list of unique linters and file statistics
 
 #### `get_linter_description(linter_code)`
-Возвращает человеко-читаемое описание линтера:
+Returns a human-readable linter description:
 - `"MARKDOWN"` → `"Markdown"`
 - `"JAVASCRIPT_ES"` → `"JavaScript/ES"`
-- И т.д.
+- Etc.
 
-### 2. Обновленный `run_linter.py`
+### 2. Updated `run_linter.py`
 
-#### Удалено
-- ❌ Ручной выбор линтеров через меню
-- ❌ Ввод номеров через запятую
+#### Removed
+- ❌ Manual linter selection via menu
+- ❌ Entering comma-separated numbers
 
-#### Добавлено
-- ✅ Автоматическое сканирование файлов
-- ✅ Определение типов файлов
-- ✅ Автоматический выбор линтеров
-- ✅ Вывод статистики найденных файлов
-- ✅ Список автоматически выбранных линтеров
+#### Added
+- ✅ Automatic file scanning
+- ✅ File type detection
+- ✅ Automatic linter selection
+- ✅ File statistics output
+- ✅ List of automatically selected linters
 
-#### Новый процесс (6 шагов вместо 5)
-1. Проверка Docker
-2. Ввод пути к папке
-3. Поиск корня Git репозитория
-4. Проверка конфигурации
-5. **Автоматический анализ файлов и выбор линтеров** ← НОВОЕ
-6. Подтверждение и запуск
+#### New process (6 steps instead of 5)
+1. Docker check
+2. Enter folder path
+3. Find Git repository root
+4. Configuration check
+5. **Automatic file analysis and linter selection** ← NEW
+6. Confirmation and launch
 
-### 3. Обновленная документация
+### 3. Updated documentation
 
-Файл `doc/LINTER_GUIDE.md`:
-- Описан новый автоматический процесс
-- Добавлен список поддерживаемых расширений
-- Приведен пример вывода статистики
-- Обновлена нумерация шагов
+File `doc/LINTER_GUIDE.md`:
+- Describes the new automatic process
+- Lists supported extensions
+- Includes a statistics output example
+- Updated step numbering
 
-## Пример работы
+## Example Output
 
 ```
-🔹 Шаг 5/6: Анализ файлов и выбор линтеров
+🔹 Step 5/6: Analyzing files and selecting linters
 
-⏳ Сканирование файлов в папке...
+⏳ Scanning files in folder...
 
-📊 Статистика файлов:
-   .md             — 5 файл(ов)
-   .html           — 3 файл(ов)
-   .css            — 2 файл(ов)
-   .js             — 1 файл(ов)
+📊 File statistics:
+   .md             — 5 file(s)
+   .html           — 3 file(s)
+   .css            — 2 file(s)
+   .js             — 1 file(s)
 
-🔍 Автоматически выбрано линтеров: 4
+🔍 Automatically selected linters: 4
    ✓ Markdown
    ✓ HTML
    ✓ CSS/SCSS
    ✓ JavaScript/ES
 
 ────────────────────────────────────────────────────────────
-📋 Параметры запуска:
-   Репозиторий: C:\...\WT-AC-2025 (Kotkovets)
-   Проверяемая папка: students/KotkovetsKirill/task_05
-   Типов файлов: 4
-   Линтеров: 4
+📋 Launch parameters:
+   Repository: C:\...\WT-AC-2025 (Kotkovets)
+   Checked folder: students/KotkovetsKirill/task_05
+   File types: 4
+   Linters: 4
 ────────────────────────────────────────────────────────────
 
-Запустить проверку? (y/n):
+Run the check? (y/n):
 ```
 
-## Архитектурные решения
+## Design Decisions
 
-### 🔒 Безопасность
-- Проверка существования директории перед сканированием
-- Пропуск скрытых файлов (начинающихся с `.`)
-- Обработка исключений при сканировании
-- Валидация расширений файлов
+### 🔒 Security
+- Directory existence check before scanning
+- Skipping hidden files (starting with `.`)
+- Exception handling during scanning
+- File extension validation
 
-### 🏗️ Архитектура
-- **Разделение ответственности**: сканирование отделено от маппинга
-- **Расширяемость**: легко добавить новые расширения в маппинг
-- **Читаемость**: отдельные методы для каждой задачи
-- **Переиспользование**: `git_docker_utils` как утилитный модуль
-- **Type hints**: для всех функций и возвращаемых значений
+### 🏗️ Architecture
+- **Separation of concerns**: scanning is separated from mapping
+- **Extensibility**: easy to add new extensions to the mapping
+- **Readability**: separate methods for each task
+- **Reusability**: `git_docker_utils` as a utility module
+- **Type hints**: for all functions and return values
 
-### ⚡ Производительность
-- Однократное сканирование директории
-- Использование `set()` для уникальных линтеров
-- Эффективный проход через `rglob("*")`
+### ⚡ Performance
+- Single directory scan
+- Using `set()` for unique linters
+- Efficient traversal via `rglob("*")`
 
 ### 🎯 UX (User Experience)
-- Полная автоматизация выбора
-- Информативный вывод статистики
-- Прозрачность: пользователь видит, что было найдено
-- Подтверждение перед запуском
+- Fully automated selection
+- Informative statistics output
+- Transparency: the user sees what was found
+- Confirmation before launch
 
-## Преимущества
+## Advantages
 
-1. **Нет ручной работы** - система сама определяет что проверять
-2. **Умное сканирование** - рекурсивный анализ всех файлов
-3. **Точность** - проверяются только те линтеры, которые нужны
-4. **Скорость** - не запускаются ненужные линтеры
-5. **Наглядность** - статистика файлов перед запуском
+1. **No manual work** - the system determines what to check on its own
+2. **Smart scanning** - recursive analysis of all files
+3. **Precision** - only the linters that are needed are run
+4. **Speed** - unnecessary linters are not launched
+5. **Clarity** - file statistics before launch

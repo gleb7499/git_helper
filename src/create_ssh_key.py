@@ -1,9 +1,9 @@
 """
 Create SSH Key Script
 
-Интерактивный скрипт для создания SSH ключа для работы с GitHub.
-Выполняет все необходимые шаги: генерация ключа, добавление в ssh-agent,
-настройка config и вывод публичного ключа.
+Interactive script for creating an SSH key for working with GitHub.
+Performs all necessary steps: key generation, adding to ssh-agent,
+config setup, and displaying the public key.
 """
 
 import sys
@@ -11,12 +11,12 @@ from ssh_manager import SSHManager
 
 
 def print_separator(char: str = "═", length: int = 60) -> None:
-    """Печатает разделитель."""
+    """Prints a separator."""
     print(char * length)
 
 
 def print_header(text: str) -> None:
-    """Печатает заголовок раздела."""
+    """Prints a section header."""
     print()
     print_separator()
     print(f"🔑 {text}")
@@ -26,15 +26,15 @@ def print_header(text: str) -> None:
 
 def get_user_input(prompt: str, validator=None, error_msg: str = "") -> str:
     """
-    Запрашивает ввод у пользователя с валидацией.
+    Request input from the user with validation.
     
     Args:
-        prompt: Текст запроса
-        validator: Функция для валидации ввода (опционально)
-        error_msg: Сообщение об ошибке при неудачной валидации
+        prompt: Prompt text
+        validator: Function to validate input (optional)
+        error_msg: Error message on failed validation
         
     Returns:
-        Валидированный ввод пользователя
+        Validated user input
     """
     while True:
         value = input(prompt).strip()
@@ -52,18 +52,18 @@ def get_user_input(prompt: str, validator=None, error_msg: str = "") -> str:
 
 def main() -> int:
     """
-    Основная функция создания SSH ключа.
+    Main SSH key creation function.
     
     Returns:
-        Код возврата (0 - успех, 1 - ошибка)
+        Exit code (0 - success, 1 - error)
     """
     try:
         print_header("Создание SSH ключа для GitHub")
         
-        # Инициализация менеджера
+        # Initialize the manager
         manager = SSHManager()
         
-        # Запрос данных у пользователя
+        # Request data from the user
         print("📝 Введите данные для создания SSH ключа:\n")
         
         username = get_user_input(
@@ -79,7 +79,7 @@ def main() -> int:
             error_msg="Имя должно содержать минимум 4 буквы и только буквы"
         )
         
-        # Убираем пробелы из полного имени
+        # Remove spaces from the full name
         full_name = full_name.replace(" ", "")
         
         print()
@@ -88,7 +88,7 @@ def main() -> int:
         print(f"✓ Имя ключа: id_ed25519_{full_name}")
         print()
         
-        # Шаг 1: Генерация SSH ключа
+        # Step 1: Generate the SSH key
         print_header("Шаг 1/4: Генерация SSH ключа")
         success, message = manager.generate_ssh_key(username, full_name)
         print(message)
@@ -96,7 +96,7 @@ def main() -> int:
         if not success:
             return 1
         
-        # Шаг 2: Проверка ssh-agent
+        # Step 2: ssh-agent check
         print_header("Шаг 2/4: Проверка ssh-agent")
         agent_running = manager.check_ssh_agent_running()
         
@@ -104,17 +104,17 @@ def main() -> int:
             print("⚠️  ssh-agent не запущен. Попытка запустить...")
             print()
             
-            # Пытаемся запустить ssh-agent
+            # Try to start ssh-agent
             success, message = manager.start_ssh_agent_windows()
             print(message)
             print()
             
-            # Проверяем еще раз
+            # Check again
             agent_running = manager.check_ssh_agent_running()
         else:
             print("✅ ssh-agent уже запущен")
         
-        # Шаг 3: Добавление ключа в ssh-agent (если агент доступен)
+        # Step 3: Add the key to ssh-agent (if the agent is available)
         print_header("Шаг 3/4: Добавление ключа в ssh-agent")
         
         if agent_running:
@@ -135,7 +135,7 @@ def main() -> int:
             print('   eval "$(ssh-agent -s)"')
             print(f'   ssh-add ~/.ssh/id_ed25519_{full_name}')
         
-        # Шаг 4: Обновление SSH config
+        # Step 4: Update SSH config
         print_header("Шаг 4/4: Настройка SSH config")
         success, message = manager.update_ssh_config(full_name)
         print(message)
@@ -143,7 +143,7 @@ def main() -> int:
         if not success:
             return 1
         
-        # Вывод публичного ключа
+        # Display the public key
         print_header("🔑 Публичный SSH ключ для GitHub")
         pub_key = manager.get_public_key(full_name)
         
@@ -163,7 +163,7 @@ def main() -> int:
             print(f"   cat ~/.ssh/id_ed25519_{full_name}.pub")
             print()
         
-        # Финальная информация
+        # Final information
         print_separator("═")
         print("✅ SSH ключ успешно настроен!")
         print_separator("═")

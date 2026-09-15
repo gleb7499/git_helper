@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Скрипт синхронизации upstream
-Обновляет ветку main форка из оригинального репозитория
+Upstream synchronization script
+Updates the fork's main branch from the original repository
 """
 
 import os
@@ -13,9 +13,9 @@ from pathlib import Path
 
 
 def run_command(command, cwd=None, check=True):
-    """Выполнить команду и вернуть результат"""
+    """Run a command and return the result"""
     try:
-        # Определяем кодировку консоли Windows
+        # Determine the Windows console encoding
         import locale
         console_encoding = locale.getpreferredencoding()
         
@@ -26,7 +26,7 @@ def run_command(command, cwd=None, check=True):
             capture_output=True,
             text=True,
             encoding=console_encoding,
-            errors='replace',  # Заменяем проблемные символы
+            errors='replace',  # Replace problematic characters
             shell=True
         )
         return result.returncode == 0, result.stdout, result.stderr
@@ -38,19 +38,19 @@ def run_command(command, cwd=None, check=True):
 
 def find_repo_folder(path):
     """
-    Найти папку репозитория с паттерном "DISCIPLINE (Surname)"
-    Если текущая папка не подходит, ищет в родительской
+    Find the repository folder matching the "DISCIPLINE (Surname)" pattern
+    If the current folder does not match, search the parent folder
     """
     path = Path(path).resolve()
     folder_name = path.name
     
-    # Паттерн: "WT-AC-2025 (Kozlovskaya)"
+    # Pattern: "WT-AC-2025 (Kozlovskaya)"
     pattern = re.compile(r'^.+ \(.+\)$')
     
     if pattern.match(folder_name):
         return path, folder_name
     
-    # Проверяем родительскую папку
+    # Check the parent folder
     parent_path = path.parent
     parent_name = parent_path.name
     
@@ -59,9 +59,9 @@ def find_repo_folder(path):
         print(f"🔹 Найден репозиторий: {parent_name}")
         return parent_path, parent_name
     
-    # Поднимаемся выше по дереву, пока не найдем паттерн или не достигнем корня
+    # Go up the tree until the pattern is found or the root is reached
     current = path.parent.parent
-    while current.parent != current:  # Пока не достигли корня диска
+    while current.parent != current:  # Until the drive root is reached
         current_name = current.name
         if pattern.match(current_name):
             print(f"🔹 Папка \"{folder_name}\" не соответствует паттерну, найден репозиторий выше...")
@@ -75,8 +75,8 @@ def find_repo_folder(path):
 
 def parse_repo_name(repo_name):
     """
-    Парсит имя репозитория для извлечения дисциплины и фамилии
-    Формат: "WT-AC-2025 (Kozlovskaya)" -> discipline="WT-AC-2025", surname="Kozlovskaya"
+    Parse the repository name to extract the discipline and surname
+    Format: "WT-AC-2025 (Kozlovskaya)" -> discipline="WT-AC-2025", surname="Kozlovskaya"
     """
     match = re.match(r'^(.+) \((.+)\)$', repo_name)
     if not match:
@@ -91,16 +91,16 @@ def parse_repo_name(repo_name):
 
 def sync_upstream(repo_path, silent=False):
     """
-    Синхронизировать ветку main с upstream
+    Sync the main branch with upstream
     
     Args:
-        repo_path: Path объект или строка с путем к репозиторию
-        silent: Если True, не выводить заголовки и не ждать нажатия Enter
+        repo_path: Path object or string with the repository path
+        silent: If True, do not print headers and do not wait for Enter
     
     Returns:
-        0 при успехе, 1 при ошибке
+        0 on success, 1 on error
     """
-    # Преобразуем в Path, если передана строка
+    # Convert to Path if a string is passed
     if isinstance(repo_path, str):
         repo_path = Path(repo_path)
     
@@ -111,12 +111,12 @@ def sync_upstream(repo_path, silent=False):
         print("=" * 40)
         print()
     
-    # Проверяем существование папки
+    # Check the folder
     if not repo_path.exists():
         print(f"❌ Папка \"{repo_path}\" не найдена! Завершение.")
         return 1
     
-    # Находим папку репозитория
+    # Find the repository folder
     repo_path, repo_name = find_repo_folder(repo_path)
     
     if repo_path is None or repo_name is None:
@@ -124,12 +124,12 @@ def sync_upstream(repo_path, silent=False):
     
     print(f"🔹 Имя репозитория: {repo_name}")
     
-    # Парсим имя репозитория
+    # Parse the repository name
     discipline, surname = parse_repo_name(repo_name)
     print(f"🔹 Дисциплина: {discipline}")
     print(f"🔹 Фамилия: {surname}")
     
-    # Формируем UPSTREAM
+    # Build the UPSTREAM URL
     upstream = f"git@github-{surname}:brstu/{discipline}.git"
     print(f"🔹 Upstream: {upstream}")
     
@@ -139,7 +139,7 @@ def sync_upstream(repo_path, silent=False):
     print("=" * 40)
     print()
     
-    # Настройка upstream
+    # Set up upstream
     print("🔹 Добавляем/обновляем upstream...")
     run_command(f"git remote add upstream {upstream}", cwd=repo_path, check=False)
     success, _, _ = run_command(f"git remote set-url upstream {upstream}", cwd=repo_path, check=False)
@@ -147,13 +147,13 @@ def sync_upstream(repo_path, silent=False):
     if not success:
         print("⚠️ Ошибка при настройке upstream, продолжаем...")
     
-    # Проверка ветки main
+    # Check the main branch
     success, _, _ = run_command("git rev-parse --verify main", cwd=repo_path, check=False)
     if not success:
         print("❌ Ветка main не найдена! Завершение.")
         return 1
     
-    # Обновление main
+    # Updating main
     print("🔹 Переключаемся на main и обновляем...")
     success, _, _ = run_command("git checkout main", cwd=repo_path)
     if not success:
@@ -174,7 +174,7 @@ def sync_upstream(repo_path, silent=False):
     if not success:
         print("⚠️ Ошибка при пуше main в форк. Возможно, нет доступа или защита ветки.")
     
-    # Пушим остальные изменения
+    # Push the remaining changes
     print("🔹 Пушим остальные изменения в форк клиента...")
     success, _, _ = run_command("git push origin", cwd=repo_path, check=False)
     if not success:
@@ -190,9 +190,9 @@ def sync_upstream(repo_path, silent=False):
 
 
 def main():
-    """Главная функция"""
+    """Main function"""
     try:
-        # Запрос пути к репозиторию
+        # Ask for the repository path
         repo_path_str = input("Введите полный путь к репозиторию: ").strip()
         
         if not repo_path_str:
@@ -202,7 +202,7 @@ def main():
         
         repo_path = Path(repo_path_str)
         
-        # Синхронизация
+        # Synchronization
         exit_code = sync_upstream(repo_path)
         
         input("Нажмите Enter для выхода...")

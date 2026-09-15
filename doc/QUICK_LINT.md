@@ -1,79 +1,79 @@
-# Quick Lint - Быстрая проверка кода
+# Quick Lint - Quick Code Check
 
-## Что это?
+## What is it?
 
-`quick_lint` - минималистичная команда для запуска супер-линтера из любой директории.
+`quick_lint` - a minimal command to run the super-linter from any directory.
 
-## Установка
+## Installation
 
-### 1. Добавить в PATH
+### 1. Add to PATH
 
 **Windows 10/11:**
 
-1. Нажмите `Win + X` → **Система**
-2. **Дополнительные параметры системы** → **Переменные среды**
-3. В разделе **Переменные пользователя** найдите `Path` → **Изменить**
-4. **Создать** → добавьте путь:
+1. Press `Win + X` → **System**
+2. **Advanced system settings** → **Environment Variables**
+3. Under **User variables** find `Path` → **Edit**
+4. **New** → add the path:
    ```
    C:\Users\kseni\Documents\GitHub\git_helper
    ```
-5. **ОК** → **ОК** → **ОК**
+5. **OK** → **OK** → **OK**
 
-### 2. Проверка
+### 2. Verify
 
-Откройте **НОВОЕ** окно командной строки (старое не увидит изменений PATH):
+Open a **NEW** command prompt window (the old one won't see the PATH changes):
 
 ```bash
 quick_lint --help
 ```
 
-Должна появиться справка по использованию.
+The usage help should appear.
 
-## Использование
+## Usage
 
-### Базовое использование
+### Basic usage
 
 ```bash
-# Перейдите в папку, которую хотите проверить
+# Go to the folder you want to check
 cd C:\Projects\WT-AC-2025 (Kozlovskaya)\students\KozlovskayaAnna\task_05
 
-# Запустите проверку
+# Run the check
 quick_lint
 ```
 
-### Вывод
+### Output
 
-**Успешная проверка:**
+**Successful check:**
 ```
-🔍 Проверка: task_05 (3 типов файлов, 2 линтеров)
-✅ Проверка пройдена успешно
+🔍 Checking: task_05 (3 file types, 2 linters)
+✅ Check passed successfully
 ```
 
-**Есть ошибки:**
+**Errors found:**
 ```
-🔍 Проверка: task_05 (3 типов файлов, 2 линтеров)
+🔍 Checking: task_05 (3 file types, 2 linters)
 
-❌ Найдено проблем: 5 ошибок, 2 предупреждений
+❌ Found problems: 5 errors, 2 warnings
 
-🔴 КРИТИЧЕСКИЕ ОШИБКИ:
+🔴 CRITICAL ERRORS:
    [MARKDOWN] MD013: Line length exceeds 80 characters
 
-❌ ОШИБКИ:
+❌ ERRORS:
    [HTML] Missing DOCTYPE declaration
    ...
 ```
 
-## Требования
+## Requirements
 
-- ✅ Docker Desktop запущен
-- ✅ Папка находится внутри Git репозитория
-- ✅ Виртуальное окружение создано (запустите `git_helper.bat` хотя бы раз)
+- ✅ Docker Desktop running
+- ✅ The folder is inside a Git repository
+- ✅ Virtual environment created (run `git_helper.bat` at least once)
 
-## Особенности
+## Features
 
-### Автоматическое определение типов файлов
+### Automatic file type detection
 
-Скрипт сканирует папку и автоматически выбирает линтеры для найденных расширений:
+The script scans the folder and automatically selects linters for the found extensions:
 
 - `.md` → Markdown
 - `.html` → HTML
@@ -82,63 +82,63 @@ quick_lint
 - `.py` → Python
 - `.json` → JSON
 - `.yml`/`.yaml` → YAML
-- и другие...
+- and others...
 
-### Умный поиск репозитория
+### Smart repository lookup
 
-Даже если вы запустите `quick_lint` из вложенной папки, скрипт автоматически найдёт корень Git репозитория (папку с `.git`).
+Even if you run `quick_lint` from a nested folder, the script will automatically find the Git repository root (the folder with `.git`).
 
-### Тихий режим
+### Quiet mode
 
-Выводит только важную информацию:
-- Краткую статистику проверки
-- Только ошибки (без предупреждений)
-- Минимум технических деталей
+Outputs only important information:
+- Brief check statistics
+- Only errors (no warnings)
+- Minimal technical details
 
 ## Troubleshooting
 
 ### "Error: Virtual environment not found"
 
-**Решение:** Запустите `git_helper.bat` один раз, чтобы создать виртуальное окружение:
+**Solution:** Run `git_helper.bat` once to create the virtual environment:
 
 ```bash
 cd C:\Users\kseni\Documents\GitHub\git_helper
 git_helper.bat
-# Выберите любой пункт меню, затем выход
+# Choose any menu option, then exit
 ```
 
-### "Docker не запущен"
+### "Docker not running"
 
-**Решение:** Запустите Docker Desktop и дождитесь полного запуска (иконка в трее станет зелёной).
+**Solution:** Start Docker Desktop and wait for it to fully start (the tray icon turns green).
 
-### "Git репозиторий не найден"
+### "Git repository not found"
 
-**Решение:** Убедитесь, что вы находитесь внутри клонированного Git репозитория:
+**Solution:** Make sure you are inside a cloned Git repository:
 
 ```bash
-# Проверка
+# Check
 git status
 
-# Если ошибка "not a git repository" - вы вне репозитория
+# If you get "not a git repository" - you are outside a repository
 ```
 
-### "Нет файлов для проверки"
+### "No files to check"
 
-**Возможные причины:**
-- В папке нет файлов с поддерживаемыми расширениями
-- Файлы находятся в исключённых папках (`node_modules`, `tools`)
+**Possible causes:**
+- The folder has no files with supported extensions
+- Files are in excluded folders (`node_modules`, `tools`)
 
-## Альтернатива: Интерактивный режим
+## Alternative: Interactive Mode
 
-Если нужен подробный вывод с пошаговым прогрессом:
+If you need detailed output with step-by-step progress:
 
 ```bash
 cd C:\Users\kseni\Documents\GitHub\git_helper
 git_helper.bat
-# Выберите пункт 6 - Запустить супер-линтер
+# Choose option 6 - Run super-linter
 ```
 
-## См. также
+## See Also
 
-- [LINTER_GUIDE.md](../doc/LINTER_GUIDE.md) - подробное руководство по линтеру
-- [AUTO_LINTER_SELECTION.md](../doc/AUTO_LINTER_SELECTION.md) - как работает автоопределение линтеров
+- [LINTER_GUIDE.md](../doc/LINTER_GUIDE.md) - detailed linter guide
+- [AUTO_LINTER_SELECTION.md](../doc/AUTO_LINTER_SELECTION.md) - how automatic linter detection works

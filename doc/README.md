@@ -1,278 +1,276 @@
-# 🚀 Git Helper - Помощник по работе с Git
+# 🚀 Git Helper - Git Workflow Assistant
 
-Набор скриптов для автоматизации работы с Git-репозиториями студентов.
+A set of scripts for automating Git repository workflows for students.
 
-## 📋 Что входит в комплект
+## 📋 What's Included
 
-### 1. **git_helper.bat** - Главный скрипт (запускайте его!)
+### 1. **git_helper.bat** - Main script (run this!)
 
-- Автоматически создает и активирует виртуальное окружение Python
-- Красивое интерактивное меню для выбора действий
-- Запускает нужные Python-скрипты
+- Automatically creates and activates a Python virtual environment
+- Nice interactive menu for choosing actions
+- Launches the required Python scripts
 
-### 2. **ssh_manager.py** - Модуль для работы с SSH
+### 2. **ssh_manager.py** - SSH management module
 
-- Генерация SSH ключей ed25519
-- Управление SSH config
-- Добавление ключей в ssh-agent
-- Валидация данных пользователя
+- ed25519 SSH key generation
+- SSH config management
+- Adding keys to ssh-agent
+- User data validation
 
-### 3. **create_ssh_key.py** - Создание SSH ключа
+### 3. **create_ssh_key.py** - SSH key creation
 
-- Интерактивное создание SSH ключа для GitHub
-- Автоматическая настройка ~/.ssh/config
-- Добавление ключа в ssh-agent
-- Вывод публичного ключа для GitHub
+- Interactive creation of an SSH key for GitHub
+- Automatic configuration of ~/.ssh/config
+- Adding the key to ssh-agent
+- Displaying the public key for GitHub
 
-### 4. **clone_repository.py** - Клонирование репозитория
+### 4. **clone_repository.py** - Repository cloning
 
-- Клонирование через SSH с автоматическим выбором ключа
-- Парсинг пути для определения репозитория и пользователя
-- Автоматическая настройка git config (user.name, user.email)
-- Интерактивный режим с подтверждением
+- Cloning via SSH with automatic key selection
+- Path parsing to determine the repository and user
+- Automatic git config setup (user.name, user.email)
+- Interactive mode with confirmation
 
-### 5. **sync_upstream.py** - Синхронизация с upstream
+### 5. **sync_upstream.py** - Upstream synchronization
 
-- Обновляет ветку `main` форка из оригинального репозитория
-- Автоматически парсит дисциплину и фамилию из пути
-- Формирует URL upstream: `git@github-{Фамилия}:brstu/{Дисциплина}.git`
+- Updates the fork's `main` branch from the original repository
+- Automatically parses the discipline and surname from the path
+- Builds the upstream URL: `git@github-{Surname}:brstu/{Discipline}.git`
 
-### 6. **create_branch.py** - Создание новой ветки
+### 6. **create_branch.py** - Creating a new branch
 
-- Автоматически синхронизирует main с upstream (использует sync_upstream.py)
-- Создает новую ветку от актуального main
-- Автоматически публикует ветку в origin
-- Проверяет существование ветки и предлагает переключиться
+- Automatically syncs main with upstream (uses sync_upstream.py)
+- Creates a new branch from the up-to-date main
+- Automatically publishes the branch to origin
+- Checks if the branch exists and offers to switch to it
 
-## 🎯 Использование
+## 🎯 Usage
 
-### Простой способ (рекомендуется)
+### Easy way (recommended)
 
-1. Запустите **`git_helper.bat`**
-2. Выберите нужное действие:
-   - **1** - Создать SSH ключ (первый шаг для нового пользователя)
-   - **2** - Клонировать репозиторий (после создания SSH ключа)
-   - **3** - Обновить main из upstream
-   - **4** - Создать новую ветку
-   - **5** - Выход
+1. Run **`git_helper.bat`**
+2. Choose the desired action:
+   - **1** - Create SSH key (first step for a new user)
+   - **2** - Clone repository (after creating the SSH key)
+   - **3** - Update main from upstream
+   - **4** - Create a new branch
+   - **5** - Exit
 
-### Рабочий процесс для нового клиента
+### Workflow for a new client
 
-#### Шаг 1: Создание SSH ключа
+#### Step 1: Create an SSH key
 
 ```bash
-# Запустите git_helper.bat и выберите пункт 1
-# Вам будет предложено ввести:
-# - GitHub username (например: annkrq)
-# - Фамилия + Имя (например: KozlovskayaAnna)
+# Run git_helper.bat and choose option 1
+# You will be asked to enter:
+# - GitHub username (e.g.: annkrq)
+# - Surname + First name (e.g.: KozlovskayaAnna)
 ```
 
-Скрипт автоматически:
+The script will automatically:
 
-- Сгенерирует SSH ключ `id_ed25519_KozlovskayaAnna`
-- Добавит ключ в ssh-agent
-- Настроит `~/.ssh/config` с host `github-KozlovskayaAnna`
-- Выведет публичный ключ для добавления в GitHub
+- Generate an SSH key `id_ed25519_KozlovskayaAnna`
+- Add the key to ssh-agent
+- Configure `~/.ssh/config` with host `github-KozlovskayaAnna`
+- Display the public key for adding to GitHub
 
-#### Шаг 2: Добавление ключа в GitHub
+#### Step 2: Add the key to GitHub
 
-1. Скопируйте публичный ключ из вывода скрипта
-2. Перейдите на GitHub: Settings → SSH and GPG keys
-3. Нажмите "New SSH key"
-4. Вставьте ключ и сохраните
+1. Copy the public key from the script output
+2. Go to GitHub: Settings → SSH and GPG keys
+3. Click "New SSH key"
+4. Paste the key and save
 
-#### Шаг 3: Клонирование репозитория
+#### Step 3: Clone the repository
 
 ```bash
-# Запустите git_helper.bat и выберите пункт 2
-# Введите путь в формате:
+# Run git_helper.bat and choose option 2
+# Enter the path in the format:
 # C:\Users\kseni\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kozlovskaya)
 ```
 
-Скрипт автоматически:
+The script will automatically:
 
-- Определит репозиторий: `WT-AC-2025`
-- Найдет SSH ключ по фамилии: `Kozlovskaya`
-- Клонирует репозиторий через SSH
-- Настроит git config (user.name и user.email)
+- Determine the repository: `WT-AC-2025`
+- Find the SSH key by surname: `Kozlovskaya`
+- Clone the repository via SSH
+- Configure git config (user.name and user.email)
 
-### Прямой запуск Python-скриптов
+### Running Python scripts directly
 
 ```bash
-# Активируйте venv (если еще не активировано)
+# Activate venv (if not already activated)
 venv\Scripts\activate
 
-# Создание SSH ключа
+# Create SSH key
 python create_ssh_key.py
 
-# Клонирование репозитория
+# Clone repository
 python clone_repository.py
 
-# Синхронизация upstream
+# Sync upstream
 python sync_upstream.py
 
-# Создание новой ветки
+# Create a new branch
 python create_branch.py
 ```
 
-## 📂 Структура путей
+## 📂 Path Structure
 
-Скрипты работают с папками формата:
+The scripts work with folders in this format:
 
 ```text
 C:\Users\...\WT-AC-2025 (Kozlovskaya)
 C:\Users\...\WT-AC-2025 (Kozlovskaya)\students\KozlovskayaAnna
 ```
 
-Паттерн: `{Дисциплина} ({Фамилия})`
+Pattern: `{Discipline} ({Surname})`
 
-Скрипты автоматически найдут корень репозитория, даже если вы укажете вложенную папку!
+The scripts will automatically find the repository root even if you specify a nested folder!
 
-## ✨ Особенности
+## ✨ Features
 
-- ✅ **Безопасность**: Все операции с проверкой ошибок
-- ✅ **Кроссплатформенность**: Python-скрипты работают на Windows/Linux/macOS
-- ✅ **Автоматизация**: Минимум ручных действий
-- ✅ **Красивый вывод**: Понятные эмодзи и форматирование
-- ✅ **Умный парсинг**: Автоматически определяет дисциплину и фамилию из пути
+- ✅ **Safety**: All operations with error checking
+- ✅ **Cross-platform**: Python scripts work on Windows/Linux/macOS
+- ✅ **Automation**: Minimal manual steps
+- ✅ **Nice output**: Clear emojis and formatting
+- ✅ **Smart parsing**: Automatically determines discipline and surname from the path
 
-## 🔧 Требования
+## 🔧 Requirements
 
-- Python 3.8+ (проверка встроена в git_helper.bat)
-- Git установлен и настроен
-- SSH-ключи настроены для доступа к GitHub (автоматизируется через пункт 1 меню)
-- Git Bash для Windows (для работы ssh-agent)
+- Python 3.8+ (check is built into git_helper.bat)
+- Git installed and configured
+- SSH keys configured for GitHub access (automated via menu option 1)
+- Git Bash for Windows (for ssh-agent)
 
-## 🛡️ Безопасность
+## 🛡️ Security
 
-Все скрипты разработаны с учетом безопасности:
+All scripts are designed with security in mind:
 
-- Валидация всех вводимых данных
-- Проверка существования файлов перед перезаписью
-- Правильные права доступа для SSH файлов (0600)
-- Безопасное хранение SSH ключей в `~/.ssh`
-- Нет хранения паролей или чувствительных данных в коде
+- Validation of all input data
+- Checking file existence before overwriting
+- Proper file permissions for SSH files (0600)
+- Secure storage of SSH keys in `~/.ssh`
+- No passwords or sensitive data stored in code
 
-## 🐛 Решение проблем
+## 🐛 Troubleshooting
 
-### "Python не найден"
+### "Python not found"
 
-Установите Python с [python.org](https://www.python.org/downloads/)
+Install Python from [python.org](https://www.python.org/downloads/)
 
-### "ssh-agent не запущен"
+### "ssh-agent not running"
 
-Для Windows (Git Bash):
-
-```bash
-eval "$(ssh-agent -s)"
-```
-
-Для Linux/Mac:
+For Windows (Git Bash):
 
 ```bash
 eval "$(ssh-agent -s)"
 ```
 
-### "Ошибка при fetch upstream"
+For Linux/Mac:
 
-Проверьте:
+```bash
+eval "$(ssh-agent -s)"
+```
 
-- SSH-ключи настроены в `~/.ssh/config`
-- Есть доступ к интернету
-- Правильно настроен алиас `github-{Фамилия}`
+### "Error during fetch upstream"
 
-### "Ветка main не найдена"
+Check:
 
-Убедитесь, что находитесь в git-репозитории с веткой `main`
+- SSH keys are configured in `~/.ssh/config`
+- Internet access is available
+- The `github-{Surname}` alias is configured correctly
 
-## 📝 Примеры работы
+### "Branch main not found"
 
-### Создание SSH ключа
+Make sure you are in a git repository with a `main` branch
+
+## 📝 Usage Examples
+
+### Creating an SSH key
 
 ```text
-🔑 Создание SSH ключа для GitHub
+🔑 Creating SSH key for GitHub
 ════════════════════════════════════════════════════════════
-📝 Введите данные для создания SSH ключа:
+📝 Enter data for SSH key creation:
 
-GitHub username (например, annkrq): annkrq
-Фамилия + Имя (без пробелов): KozlovskayaAnna
+GitHub username (e.g., annkrq): annkrq
+Surname + First name (no spaces): KozlovskayaAnna
 
 ✓ Username: annkrq
-✓ Полное имя: KozlovskayaAnna
-✓ Имя ключа: id_ed25519_KozlovskayaAnna
+✓ Full name: KozlovskayaAnna
+✓ Key name: id_ed25519_KozlovskayaAnna
 
-Продолжить создание ключа? (y/n): y
-✅ SSH ключ успешно создан: id_ed25519_KozlovskayaAnna
-✅ SSH config обновлен. Host: github-KozlovskayaAnna
+Continue creating the key? (y/n): y
+✅ SSH key successfully created: id_ed25519_KozlovskayaAnna
+✅ SSH config updated. Host: github-KozlovskayaAnna
 
-📌 Публичный SSH ключ:
+📌 Public SSH key:
 ────────────────────────────────────────────────────────────
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIxxxxx... annkrq
 ────────────────────────────────────────────────────────────
 ```
 
-### Клонирование репозитория
+### Cloning a repository
 
 ```text
-📦 Клонирование репозитория через SSH
+📦 Cloning repository via SSH
 ════════════════════════════════════════════════════════════
-📝 Введите данные для клонирования:
+📝 Enter cloning data:
 
-Целевой путь: C:\Users\kseni\Documents\WT-AC-2025 (Kozlovskaya)
+Target path: C:\Users\kseni\Documents\WT-AC-2025 (Kozlovskaya)
 
-✓ Репозиторий: WT-AC-2025
-✓ Фамилия: Kozlovskaya
-✓ Найден SSH host: github-KozlovskayaAnna
+✓ Repository: WT-AC-2025
+✓ Surname: Kozlovskaya
+✓ Found SSH host: github-KozlovskayaAnna
 
-Имя для git config (например, Anna Kozlovskaya): Anna Kozlovskaya
-GitHub username (например, annkrq): annkrq
+Name for git config (e.g., Anna Kozlovskaya): Anna Kozlovskaya
+GitHub username (e.g., annkrq): annkrq
 
 ════════════════════════════════════════════════════════════
-📋 Итоговая информация:
+📋 Summary information:
 ════════════════════════════════════════════════════════════
-  Репозиторий:  WT-AC-2025
+  Repository:  WT-AC-2025
   SSH Host:     github-KozlovskayaAnna
   Username:     annkrq
   Git Name:     Anna Kozlovskaya
   Git Email:    annkrq@users.noreply.github.com
 ════════════════════════════════════════════════════════════
 
-✅ Репозиторий успешно склонирован и настроен
+✅ Repository successfully cloned and configured
 ```
 
-### Синхронизация upstream
-
-### Синхронизация upstream
+### Upstream synchronization
 
 ```text
-Введите полный путь к репозиторию: C:\Users\...\WT-AC-2025 (Kozlovskaya)
-🔹 Имя репозитория: WT-AC-2025 (Kozlovskaya)
-🔹 Дисциплина: WT-AC-2025
-🔹 Фамилия: Kozlovskaya
+Enter the full path to the repository: C:\Users\...\WT-AC-2025 (Kozlovskaya)
+🔹 Repository name: WT-AC-2025 (Kozlovskaya)
+🔹 Discipline: WT-AC-2025
+🔹 Surname: Kozlovskaya
 🔹 Upstream: git@github-Kozlovskaya:brstu/WT-AC-2025.git
-🔹 Переключаемся на main и обновляем...
-✅ Синхронизация завершена!
+🔹 Switching to main and updating...
+✅ Synchronization complete!
 ```
 
-## 🏗️ Архитектура
+## 🏗️ Architecture
 
-Проект построен модульно:
+The project is built modularly:
 
-- **ssh_manager.py** - Базовый модуль с классом SSHManager для работы с SSH
-- **create_ssh_key.py** - CLI скрипт, использует ssh_manager
-- **clone_repository.py** - CLI скрипт, использует ssh_manager
-- **sync_upstream.py** - Независимый скрипт для синхронизации
-- **create_branch.py** - Скрипт создания веток, использует sync_upstream
-- **git_helper.bat** - Точка входа, управляет всеми скриптами
+- **ssh_manager.py** - Base module with the SSHManager class for SSH operations
+- **create_ssh_key.py** - CLI script, uses ssh_manager
+- **clone_repository.py** - CLI script, uses ssh_manager
+- **sync_upstream.py** - Standalone script for synchronization
+- **create_branch.py** - Branch creation script, uses sync_upstream
+- **git_helper.bat** - Entry point, manages all scripts
 
-Преимущества такой архитектуры:
+Advantages of this architecture:
 
-- Переиспользование кода (DRY принцип)
-- Легкое тестирование отдельных модулей
-- Возможность использовать скрипты независимо или через BAT-меню
-- Простота добавления новых функций
+- Code reuse (DRY principle)
+- Easy testing of individual modules
+- Ability to use scripts independently or via the BAT menu
+- Easy to add new features
 
 ---
 
-**Автор:** GitHub Copilot  
-**Дата обновления:** 9 декабря 2025 г.
+**Author:** GitHub Copilot  
+**Updated:** December 9, 2025

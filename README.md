@@ -1,63 +1,63 @@
 # 🚀 Git Helper
 
-Автоматизация работы с Git и SSH ключами для студенческих проектов.
+Automation of Git and SSH key management for student projects.
 
-## Быстрый старт
+## Quick Start
 
-### Главное меню
+### Main menu
 
 ```bash
 git_helper.bat
 ```
 
-### Быстрая проверка кода (из любой папки)
+### Quick code check (from any folder)
 
 ```bash
 quick_lint
 ```
 
-> Добавьте путь к проекту в PATH для использования `quick_lint` откуда угодно. [Подробнее →](doc/QUICK_LINT.md)
+> Add the project path to PATH to use `quick_lint` from anywhere. [More details →](doc/QUICK_LINT.md)
 
-## Структура проекта
+## Project Structure
 
 ```text
-git_helper.bat          # Главное меню (запускайте его!)
-quick_lint.bat          # Быстрая проверка (откуда угодно)
-src/                    # Python скрипты
+git_helper.bat          # Main menu (run this!)
+quick_lint.bat          # Quick check (from anywhere)
+src/                    # Python scripts
   ├── ssh_manager.py
   ├── create_ssh_key.py
   ├── delete_ssh_key.py
   ├── clone_repository.py
   ├── sync_upstream.py
   ├── create_branch.py
-  ├── git_docker_utils.py  # Утилиты для Docker
-  └── run_linter.py        # Запуск супер-линтера
-doc/                    # Документация
-  ├── QUICKSTART.md     # Начните с этого файла!
-  ├── CHEATSHEET.md     # Краткая справка
-  ├── USAGE_GUIDE.md    # Подробные инструкции
-  ├── LINTER_GUIDE.md   # Руководство по линтеру
-  ├── QUICK_LINT.md     # Быстрая проверка кода
-  ├── README.md         # Полная документация
-  └── SUMMARY.md        # Описание изменений
+  ├── git_docker_utils.py  # Docker utilities
+  └── run_linter.py        # Super-linter launcher
+doc/                    # Documentation
+  ├── QUICKSTART.md     # Start with this file!
+  ├── CHEATSHEET.md     # Quick reference
+  ├── USAGE_GUIDE.md    # Detailed instructions
+  ├── LINTER_GUIDE.md   # Linter guide
+  ├── QUICK_LINT.md     # Quick code check
+  ├── README.md         # Full documentation
+  └── SUMMARY.md        # Change log
 ```
 
-## Меню
+## Menu
 
-1. **Создать SSH ключ** - для нового клиента (первый раз)
-2. **Удалить SSH ключ** - удаление ключа из системы
-3. **Клонировать репозиторий** - после создания ключа
-4. **Обновить main** - синхронизация с преподавателем
-5. **Создать ветку** - для новой лабораторной
-6. **Запустить супер-линтер** - проверка качества кода (NEW!)
-7. **Выход**
+1. **Create SSH key** - for a new client (first time)
+2. **Delete SSH key** - remove a key from the system
+3. **Clone repository** - after creating a key
+4. **Update main** - sync with the teacher's repo
+5. **Create branch** - for a new lab assignment
+6. **Run super-linter** - code quality check (NEW!)
+7. **Exit**
 
-## Документация
+## Documentation
 
-📖 Полная документация в папке **doc/**
+📖 Full documentation in the **doc/** folder
 
-Начните с `doc/QUICKSTART.md` для быстрого старта!
+Start with `doc/QUICKSTART.md` for a quick start!
 
 ---
 
-**Требования:** Python 3.8+, Git, Git Bash, Docker Desktop (для линтера)
+**Requirements:** Python 3.8+, Git, Git Bash, Docker Desktop (for the linter)

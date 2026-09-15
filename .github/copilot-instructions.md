@@ -2,63 +2,63 @@
 
 ## Project Overview
 
-Git Helper - это инструмент автоматизации Git/SSH workflow для студенческих проектов. Центральная точка входа - `git_helper.bat` (Windows batch-файл с меню), который запускает Python-скрипты из папки `src/`.
+Git Helper is a tool for automating the Git/SSH workflow for student projects. The central entry point is `git_helper.bat` (Windows batch file with a menu), which launches Python scripts from the `src/` folder.
 
-**Целевая аудитория:** Студенты с множественными GitHub-аккаунтами, работающие над разными курсовыми репозиториями.
+**Target audience:** Students with multiple GitHub accounts working on different course repositories.
 
 ## Core Architecture
 
 ### Entry Point Pattern
 
-- **Main Menu:** [git_helper.bat](../git_helper.bat) - batch-скрипт, который:
-  - Создаёт/активирует Python venv
-  - Показывает интерактивное меню (1-7)
-  - Вызывает соответствующие Python-модули из `src/`
-- **Quick Lint:** [quick_lint.bat](../quick_lint.bat) - минималистичный запуск линтера:
-  - Запускается из любой директории (добавить в PATH)
-  - Использует текущую директорию как целевую
-  - venv всегда из `%SCRIPT_DIR%` (где лежит bat)
-  - Синтаксис: `quick_lint` (без аргументов)
+- **Main Menu:** [git_helper.bat](../git_helper.bat) - batch script that:
+  - Creates/activates a Python venv
+  - Shows an interactive menu (1-7)
+  - Calls the corresponding Python modules from `src/`
+- **Quick Lint:** [quick_lint.bat](../quick_lint.bat) - minimal linter launcher:
+  - Runs from any directory (add to PATH)
+  - Uses the current directory as the target
+  - venv always from `%SCRIPT_DIR%` (where the bat is located)
+  - Syntax: `quick_lint` (no arguments)
   
-### Path Convention (КРИТИЧНО!)
+### Path Convention (CRITICAL!)
 
-Все скрипты парсят специфичный паттерн путей:
+All scripts parse a specific path pattern:
 
 ```text
-C:\Users\...\{ДИСЦИПЛИНА} ({Фамилия})\students\{ФамилияИмя}\...
+C:\Users\...\{DISCIPLINE} ({Surname})\students\{SurnameFirstName}\...
 ```
 
-Примеры:
+Examples:
 
-- `WT-AC-2025 (Kozlovskaya)` - корень форка репозитория
-- `WT-AC-2025 (Kozlovskaya)\students\KozlovskayaAnna\task_05` - папка с заданием
+- `WT-AC-2025 (Kozlovskaya)` - fork repository root
+- `WT-AC-2025 (Kozlovskaya)\students\KozlovskayaAnna\task_05` - task folder
 
-**Regex паттерн:** `^(.+?)\s*\(([^)]+)\)$` парсит `{repo_name} ({surname})`
+**Regex pattern:** `^(.+?)\s*\(([^)]+)\)$` parses `{repo_name} ({surname})`
 
 ### Module Organization
 
 ```text
 src/
-├── ssh_manager.py         # SSHManager class - ядро для всех SSH операций
-├── create_ssh_key.py      # CLI обёртка для SSHManager.generate_ssh_key()
-├── delete_ssh_key.py      # CLI обёртка для SSHManager.remove_ssh_key()
-├── clone_repository.py    # Парсит путь → находит SSH ключ → клонирует
-├── sync_upstream.py       # Синхронизация main с upstream (brstu/{discipline})
-├── create_branch.py       # Импортирует sync_upstream.py → создаёт ветку
-├── git_docker_utils.py    # GitDockerUtils class для линтера
-└── run_linter.py          # CLI обёртка для супер-линтера через Docker
+├── ssh_manager.py         # SSHManager class - core for all SSH operations
+├── create_ssh_key.py      # CLI wrapper for SSHManager.generate_ssh_key()
+├── delete_ssh_key.py      # CLI wrapper for SSHManager.remove_ssh_key()
+├── clone_repository.py    # Parses path → finds SSH key → clones
+├── sync_upstream.py       # Syncs main with upstream (brstu/{discipline})
+├── create_branch.py       # Imports sync_upstream.py → creates branch
+├── git_docker_utils.py    # GitDockerUtils class for the linter
+└── run_linter.py          # CLI wrapper for the super-linter via Docker
 ```
 
 ## Key Design Patterns
 
 ### 1. SSHManager Class Pattern
 
-`ssh_manager.py` - единственный модуль, работающий с SSH. Все остальные импортируют его.
+`ssh_manager.py` is the only module that works with SSH. All others import it.
 
-**Ключевая конвенция:** SSH host = `github-{ФамилияИмя}`, ключ = `id_ed25519_{ФамилияИмя}`
+**Key convention:** SSH host = `github-{SurnameFirstName}`, key = `id_ed25519_{SurnameFirstName}`
 
 ```python
-# Пример использования в других модулях:
+# Example usage in other modules:
 from ssh_manager import SSHManager
 ssh_mgr = SSHManager()
 full_name = ssh_mgr.get_full_name_from_config(surname)  # Kozlovskaya → KozlovskayaAnna
@@ -66,7 +66,7 @@ full_name = ssh_mgr.get_full_name_from_config(surname)  # Kozlovskaya → Kozlov
 
 ### 2. Module Importation Pattern (cross-script calls)
 
-`create_branch.py` ИМПОРТИРУЕТ `sync_upstream.py` динамически через `importlib`:
+`create_branch.py` IMPORTS `sync_upstream.py` dynamically via `importlib`:
 
 ```python
 spec = importlib.util.spec_from_file_location("sync_upstream_module", sync_script)
@@ -75,21 +75,21 @@ spec.loader.exec_module(sync_module)
 exit_code = sync_module.sync_upstream(repo_path, silent=True)
 ```
 
-**Почему:** Избегает дублирования логики синхронизации upstream.
+**Why:** Avoids duplicating the upstream synchronization logic.
 
 ### 3. Path Resolution Pattern
 
-Все модули с парсингом путей используют:
+All modules with path parsing use:
 
 ```python
 def find_repo_folder(path) -> Optional[Tuple[Path, str]]:
-    """Поднимается вверх по дереву до паттерна '{repo} ({surname})'"""
-    # Используется в: clone_repository.py, sync_upstream.py
+    """Walks up the tree to the '{repo} ({surname})' pattern"""
+    # Used in: clone_repository.py, sync_upstream.py
 ```
 
 ### 4. Git Root Discovery
 
-`git_docker_utils.py` и другие поднимаются до `.git`:
+`git_docker_utils.py` and others walk up to `.git`:
 
 ```python
 def find_git_root(start_path) -> Optional[Path]:
@@ -100,7 +100,7 @@ def find_git_root(start_path) -> Optional[Path]:
 
 ### 5. Encoding Handling (Windows-specific)
 
-Все subprocess вызовы используют:
+All subprocess calls use:
 
 ```python
 import locale
@@ -108,7 +108,7 @@ console_encoding = locale.getpreferredencoding()
 subprocess.run(..., encoding=console_encoding, errors='replace')
 ```
 
-**Причина:** Кириллица в путях/именах файлов на Windows.
+**Reason:** Cyrillic in paths/file names on Windows.
 
 ## Critical Workflows
 
@@ -116,20 +116,20 @@ subprocess.run(..., encoding=console_encoding, errors='replace')
 
 [run_linter.py](../src/run_linter.py) + [git_docker_utils.py](../src/git_docker_utils.py):
 
-1. **Auto-detection:** Сканирует файлы → определяет расширения → автоматически выбирает линтеры
-2. **Docker invocation:** Монтирует корень репозитория в `/tmp/lint`, проверяет только относительный путь
-3. **Config:** Ищет `.markdownlint.yaml` в корне репозитория (не в проверяемой папке!)
-4. **Dual Mode:** Интерактивный (по умолчанию) + тихий режим (`--silent --path`)
+1. **Auto-detection:** Scans files → determines extensions → automatically selects linters
+2. **Docker invocation:** Mounts the repository root to `/tmp/lint`, checks only the relative path
+3. **Config:** Looks for `.markdownlint.yaml` in the repository root (not in the checked folder!)
+4. **Dual Mode:** Interactive (default) + quiet mode (`--silent --path`)
 
-**CLI аргументы:**
+**CLI arguments:**
 
 ```bash
-python run_linter.py                    # Интерактивный режим
-python run_linter.py --path "C:\..."   # Интерактивный с предзаполненным путём
-python run_linter.py --path "C:\..." --silent  # Тихий режим (для quick_lint)
+python run_linter.py                    # Interactive mode
+python run_linter.py --path "C:\..."   # Interactive with pre-filled path
+python run_linter.py --path "C:\..." --silent  # Quiet mode (for quick_lint)
 ```
 
-**Команда Docker:**
+**Docker command:**
 
 ```python
 docker run --rm -e RUN_LOCAL=true \
@@ -141,24 +141,24 @@ docker run --rm -e RUN_LOCAL=true \
 
 ### Upstream Sync Pattern
 
-`sync_upstream.py` формирует URL: `git@github-{surname}:brstu/{discipline}.git`
+`sync_upstream.py` builds the URL: `git@github-{surname}:brstu/{discipline}.git`
 
-- Фамилия из паттерна пути → SSH host
-- Дисциплина (например, `WT-AC-2025`) → имя оригинального репозитория
+- Surname from the path pattern → SSH host
+- Discipline (e.g., `WT-AC-2025`) → original repository name
 
 ### Branch Creation Flow
 
-1. Импортирует `sync_upstream.py`
-2. Синхронизирует main с upstream (brstu)
-3. Создаёт ветку от обновлённого main
-4. Публикует в origin (форк студента)
+1. Imports `sync_upstream.py`
+2. Syncs main with upstream (brstu)
+3. Creates a branch from the updated main
+4. Publishes to origin (student's fork)
 
 ## Conventions & Best Practices
 
 ### Error Handling
 
-- Все функции возвращают `Tuple[bool, str]` для (успех, сообщение)
-- Вывод с эмодзи: ✅ успех, ❌ ошибка, ⚠️ предупреждение, 🔹 инфо
+- All functions return `Tuple[bool, str]` for (success, message)
+- Output with emojis: ✅ success, ❌ error, ⚠️ warning, 🔹 info
 
 ### User Output Style
 
@@ -170,32 +170,32 @@ def print_header(text: str) -> None:
     print_separator()
 ```
 
-**Используется везде!** Сохраняйте консистентность.
+**Used everywhere!** Keep it consistent.
 
 ### Validation Pattern
 
-SSHManager содержит regex-валидацию для:
+SSHManager contains regex validation for:
 
 - GitHub username: `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,38})?$`
-- Имя/фамилия: `^[a-zA-Zа-яА-ЯёЁ]{2,50}$`
+- First/surname: `^[a-zA-Zа-яА-ЯёЁ]{2,50}$`
 
 ### Config Management
 
-SSH config обновляется атомарно:
+SSH config is updated atomically:
 
 ```python
 def update_ssh_config(full_name: str):
-    # 1. Читает весь config
-    # 2. Ищет существующую запись для Host github-{full_name}
-    # 3. Обновляет или добавляет новую
-    # 4. Записывает обратно
+    # 1. Reads the entire config
+    # 2. Looks for an existing entry for Host github-{full_name}
+    # 3. Updates or adds a new one
+    # 4. Writes it back
 ```
 
 ## External Dependencies
 
-- **Python 3.8+** (проверяется в git_helper.bat)
-- **Git** + **Git Bash** (для ssh-agent на Windows)
-- **Docker Desktop** (только для супер-линтера, пункт 6)
+- **Python 3.8+** (checked in git_helper.bat)
+- **Git** + **Git Bash** (for ssh-agent on Windows)
+- **Docker Desktop** (only for the super-linter, menu option 6)
 
 ## Testing & Development
 
@@ -203,32 +203,32 @@ def update_ssh_config(full_name: str):
 Quick Lint Setup
 
 ```bash
-# Добавить в PATH переменную среды Windows:
+# Add to the Windows PATH environment variable:
 C:\Users\kseni\Documents\GitHub\git_helper
 
-# Использование откуда угодно:
+# Usage from anywhere:
 cd C:\Projects\MyRepo\task_01
-quick_lint  # Проверит текущую директорию
+quick_lint  # Checks the current directory
 
-# Внутреннее поведение:
+# Internal behavior:
 # 1. %SCRIPT_DIR% → C:\Users\kseni\Documents\GitHub\git_helper
-# 2. %TARGET_DIR% → %CD% (текущая директория)
-# 3. Активирует venv из SCRIPT_DIR
-# 4. Вызывает: python run_linter.py --path TARGET_DIR --silent
+# 2. %TARGET_DIR% → %CD% (current directory)
+# 3. Activates venv from SCRIPT_DIR
+# 4. Calls: python run_linter.py --path TARGET_DIR --silent
 ```
 
 ### 
 ```bash
-# Активировать venv
+# Activate venv
 venv\Scripts\activate
 
-# Запустить модуль напрямую
+# Run a module directly
 python src\create_ssh_key.py
 ```
 
 ### Path Testing
 
-Используйте тестовые пути формата:
+Use test paths in the format:
 
 ```text
 C:\Test\WT-AC-2025 (TestSurname)\students\TestSurnameFirst\task_01
@@ -236,7 +236,7 @@ C:\Test\WT-AC-2025 (TestSurname)\students\TestSurnameFirst\task_01
 
 ## Important Notes
 
-- **НИКОГДА не изменяйте паттерн пути** `{repo} ({surname})` - весь проект завязан на нём
-- **SSH keys БЕЗ passphrase** (для автоматизации) - см. `generate_ssh_key()` с `-N ""`
-- **Git config настраивается автоматически** при клонировании через `clone_repository.py`
-- **Документация живёт в `doc/`**, но README.md в корне - главная точка входа для пользователей
+- **NEVER change the path pattern** `{repo} ({surname})` - the whole project depends on it
+- **SSH keys WITHOUT passphrase** (for automation) - see `generate_ssh_key()` with `-N ""`
+- **Git config is set automatically** during cloning via `clone_repository.py`
+- **Documentation lives in `doc/`**, but the README.md in the root is the main entry point for users

@@ -1,17 +1,17 @@
-Теперь выполняй указания ниже строго и пошагово, без самодеятельности!
+Now follow the instructions below strictly and step by step, without any improvisation!
 
-После выполнения проекта выполни локальный анализ супер-линтером, только используя мою собственную утилиту:
+After completing the project, run a local super-linter analysis using only my own utility:
 
-1) Запусти утилиту в командной строке именно из корня данного проекта: quick_lint
+1) Run the utility from the command line exactly from the root of this project: quick_lint
 
-2) Если в командной строке появилась какая-либо ошибка выполнения программ, не относящаяся к ошибкам линтеров, прерывай выполнение сеанса. Проверка линтерами займет около 30-35 секунд, ожидай и НЕ бросай ожидание до тех пор, пока в командной строке не покажется какое-либо сообщение (но по умолчанию, если через 2 минуты после запуска утилиты ничего не произошло до настоящего момента, прерывай выполнение сеанса, чтобы не ожидать вечно);
+2) If any program execution error appears in the command line that is not related to linter errors, abort the session. The linter checks will take about 30-35 seconds; wait and do NOT give up waiting until any message appears in the command line (but by default, if nothing has happened within 2 minutes after launching the utility, abort the session so as not to wait forever);
 
-3) Если линтер показал какие-либо ошибки, тогда:
-3.1) пропарси результат;
-3.2) пройдись по проекту, пошагово и внимательно исправляя ошибки, которые нашел линтер;
-3.3) после исправления всех ошибок перейди в начало к шагу 1);
+3) If the linter shows any errors, then:
+3.1) parse the result;
+3.2) go through the project, step by step and carefully fixing the errors the linter found;
+3.3) after fixing all errors, go back to step 1;
 
-4) Если линтер НЕ показал никаких ошибок, тогда сделай:
-- коммит
-- пуш
-- заверши работу сеанса.
+4) If the linter shows NO errors, then:
+- commit
+- push
+- end the session.

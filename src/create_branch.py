@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Скрипт создания новой ветки
-Создает новую ветку в репозитории после синхронизации с upstream
+New branch creation script
+Creates a new branch in the repository after syncing with upstream
 """
 
 import os
@@ -13,9 +13,9 @@ from pathlib import Path
 
 
 def run_command(command, cwd=None, check=True):
-    """Выполнить команду и вернуть результат"""
+    """Run a command and return the result"""
     try:
-        # Определяем кодировку консоли Windows
+        # Determine the Windows console encoding
         import locale
         console_encoding = locale.getpreferredencoding()
         
@@ -26,7 +26,7 @@ def run_command(command, cwd=None, check=True):
             capture_output=True,
             text=True,
             encoding=console_encoding,
-            errors='replace',  # Заменяем проблемные символы
+            errors='replace',  # Replace problematic characters
             shell=True
         )
         return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
@@ -38,19 +38,19 @@ def run_command(command, cwd=None, check=True):
 
 def find_git_repo(path):
     """
-    Найти корневую папку git-репозитория
-    Поднимается вверх по дереву папок, пока не найдет .git
+    Find the git repository root folder
+    Walks up the folder tree until it finds .git
     """
     current = Path(path).resolve()
     
-    # Проверяем текущую папку
+    # Check the current folder
     if (current / ".git").exists():
         return current
     
     print(f"🔹 .git не найден в \"{current}\", проверяем родительские папки...")
     
-    # Поднимаемся вверх
-    while current.parent != current:  # Пока не достигнем корня диска
+    # Go up
+    while current.parent != current:  # Until the drive root is reached
         current = current.parent
         if (current / ".git").exists():
             print(f"🔹 Найден git-репозиторий: {current}")
@@ -62,12 +62,12 @@ def find_git_repo(path):
 
 
 def validate_branch_name(branch_name):
-    """Проверить корректность имени ветки"""
+    """Check that the branch name is valid"""
     if not branch_name:
         print("❌ Имя ветки не может быть пустым! Завершение.")
         return False
     
-    # Проверка недопустимых символов
+    # Check for invalid characters
     invalid_chars = r'[\\/:*?"<>|]'
     if re.search(invalid_chars, branch_name):
         print("❌ Имя ветки содержит недопустимые символы! Завершение.")
@@ -77,14 +77,14 @@ def validate_branch_name(branch_name):
 
 
 def sync_with_upstream(repo_path):
-    """Вызвать sync_upstream для синхронизации"""
+    """Call sync_upstream for synchronization"""
     print()
     print("=" * 40)
     print("🔹 Синхронизация с upstream")
     print("=" * 40)
     print()
     
-    # Импортируем модуль sync_upstream
+    # Import the sync_upstream module
     script_dir = Path(__file__).parent
     sync_script = script_dir / "sync_upstream.py"
     
@@ -95,7 +95,7 @@ def sync_with_upstream(repo_path):
     
     print("🔹 Вызов sync_upstream.py для обновления main...")
     
-    # Импортируем функцию синхронизации напрямую
+    # Import the synchronization function directly
     import importlib.util
     spec = importlib.util.spec_from_file_location("sync_upstream_module", sync_script)
     
@@ -127,14 +127,14 @@ def sync_with_upstream(repo_path):
 
 
 def create_branch(repo_path, branch_name):
-    """Создать и опубликовать новую ветку"""
+    """Create and publish a new branch"""
     print()
     print("=" * 40)
     print("🔹 Создание новой ветки")
     print("=" * 40)
     print()
     
-    # Проверяем текущую ветку
+    # Check the current branch
     success, current_branch, _ = run_command("git branch --show-current", cwd=repo_path)
     
     if not success or current_branch != "main":
@@ -146,7 +146,7 @@ def create_branch(repo_path, branch_name):
             input("Нажмите Enter для выхода...")
             sys.exit(1)
     
-    # Проверяем, не существует ли уже такая ветка
+    # Check that such a branch does not already exist
     success, _, _ = run_command(f"git rev-parse --verify {branch_name}", cwd=repo_path, check=False)
     
     if success:
@@ -161,7 +161,7 @@ def create_branch(repo_path, branch_name):
         print(f"✅ Переключено на существующую ветку \"{branch_name}\"")
         return True
     
-    # Создаем новую ветку
+    # Create the new branch
     print(f"🔹 Создание и переключение на ветку: {branch_name}")
     success, _, _ = run_command(f"git checkout -b {branch_name}", cwd=repo_path)
     
@@ -181,22 +181,22 @@ def create_branch(repo_path, branch_name):
 
 def sanitize_folder_name(name):
     """
-    Очищает имя папки от недопустимых символов для Windows.
+    Clean the folder name of characters invalid on Windows.
     
     Args:
-        name: Исходное имя
+        name: Original name
         
     Returns:
-        Безопасное имя папки
+        Safe folder name
     """
-    # Удаляем недопустимые символы для Windows: \ / : * ? " < > |
+    # Remove characters invalid on Windows: \ / : * ? " < > |
     invalid_chars = r'[\\/:*?"<>|]'
     sanitized = re.sub(invalid_chars, '_', name)
     
-    # Удаляем точки в конце (Windows не позволяет)
+    # Remove trailing dots (not allowed on Windows)
     sanitized = sanitized.rstrip('.')
     
-    # Удаляем пробелы в начале и конце
+    # Trim leading and trailing spaces
     sanitized = sanitized.strip()
     
     return sanitized
@@ -204,14 +204,14 @@ def sanitize_folder_name(name):
 
 def create_branch_folder(initial_path, branch_name):
     """
-    Создает папку с именем ветки по изначально указанному пути.
+    Create a folder named after the branch at the originally specified path.
     
     Args:
-        initial_path: Путь, который пользователь указал изначально
-        branch_name: Имя созданной ветки
+        initial_path: The path the user originally specified
+        branch_name: Name of the created branch
         
     Returns:
-        Path объект созданной папки или None в случае отказа
+        Path object of the created folder or None if declined
     """
     print()
     print("=" * 40)
@@ -219,21 +219,21 @@ def create_branch_folder(initial_path, branch_name):
     print("=" * 40)
     print()
     
-    # Очищаем имя папки
+    # Clean up the folder name
     folder_name = sanitize_folder_name(branch_name)
     
     if not folder_name:
         print("⚠️  После очистки имя папки пустое, пропускаем создание")
         return None
     
-    # Формируем полный путь к новой папке
+    # Build the full path to the new folder
     target_folder = Path(initial_path) / folder_name
     
     print(f"📁 Планируется создать папку:")
     print(f"   {target_folder}")
     print()
     
-    # Проверяем существование
+    # Check existence
     if target_folder.exists():
         print(f"⚠️  Папка \"{folder_name}\" уже существует по этому пути")
         
@@ -244,7 +244,7 @@ def create_branch_folder(initial_path, branch_name):
             print("❌ Путь существует, но это файл, а не папка")
             return None
     
-    # Создаем папку автоматически
+    # Create the folder automatically
     try:
         target_folder.mkdir(parents=True, exist_ok=True)
         print()
@@ -266,7 +266,7 @@ def create_branch_folder(initial_path, branch_name):
 
 
 def publish_branch(repo_path, branch_name):
-    """Опубликовать ветку в удаленный репозиторий"""
+    """Publish the branch to the remote repository"""
     print()
     print("=" * 40)
     print("🔹 Публикация ветки в удалённый репозиторий")
@@ -302,7 +302,7 @@ def publish_branch(repo_path, branch_name):
 
 
 def main():
-    """Главная функция"""
+    """Main function"""
     try:
         print()
         print("=" * 40)
@@ -310,7 +310,7 @@ def main():
         print("=" * 40)
         print()
         
-        # Запрос пути к репозиторию
+        # Ask for the repository path
         repo_path_str = input("Введите полный путь к репозиторию: ").strip()
         
         if not repo_path_str:
@@ -318,41 +318,41 @@ def main():
             input("Нажмите Enter для выхода...")
             sys.exit(1)
         
-        # Сохраняем изначальный путь для создания папки
+        # Save the original path for folder creation
         initial_path = Path(repo_path_str).resolve()
         
-        # Проверяем существование папки
+        # Check the folder
         if not initial_path.exists():
             print(f"❌ Папка \"{initial_path}\" не найдена! Завершение.")
             input("Нажмите Enter для выхода...")
             sys.exit(1)
         
-        # Находим git-репозиторий
+        # Find the git repository
         repo_path = find_git_repo(initial_path)
         print(f"🔹 Путь к репозиторию: {repo_path}")
         
-        # Запрос имени ветки
+        # Ask for the branch name
         print()
         branch_name = input("Введите название новой ветки: ").strip()
         
-        # Валидация имени ветки
+        # Branch name validation
         if not validate_branch_name(branch_name):
             input("Нажмите Enter для выхода...")
             sys.exit(1)
         
-        # Синхронизация с upstream
+        # Sync with upstream
         sync_with_upstream(repo_path)
         
-        # Создание ветки
+        # Creating the branch
         create_branch(repo_path, branch_name)
         
-        # Публикация ветки
+        # Publish the branch
         publish_branch(repo_path, branch_name)
         
-        # Создание рабочей папки с именем ветки
+        # Creating a working folder named after the branch
         created_folder = create_branch_folder(initial_path, branch_name)
         
-        # Финальное сообщение
+        # Final message
         print()
         print("=" * 40)
         print("✅ ГОТОВО!")

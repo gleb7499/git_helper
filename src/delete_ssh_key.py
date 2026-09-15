@@ -1,8 +1,8 @@
 """
 Delete SSH Key Script
 
-Интерактивный скрипт для удаления SSH ключа.
-Удаляет ключ полностью: файлы, запись из config, из ssh-agent.
+Interactive script for deleting an SSH key.
+Deletes the key completely: files, config entry, ssh-agent entry.
 """
 
 import sys
@@ -10,12 +10,12 @@ from ssh_manager import SSHManager
 
 
 def print_separator(char: str = "═", length: int = 60) -> None:
-    """Печатает разделитель."""
+    """Prints a separator."""
     print(char * length)
 
 
 def print_header(text: str) -> None:
-    """Печатает заголовок раздела."""
+    """Prints a section header."""
     print()
     print_separator()
     print(f"🗑️  {text}")
@@ -25,18 +25,18 @@ def print_header(text: str) -> None:
 
 def main() -> int:
     """
-    Основная функция удаления SSH ключа.
+    Main SSH key deletion function.
     
     Returns:
-        Код возврата (0 - успех, 1 - ошибка)
+        Exit code (0 - success, 1 - error)
     """
     try:
         print_header("Удаление SSH ключа")
         
-        # Инициализация менеджера
+        # Initialize the manager
         manager = SSHManager()
         
-        # Получаем список ключей
+        # Get the list of keys
         keys = manager.list_ssh_keys()
         
         if not keys:
@@ -44,7 +44,7 @@ def main() -> int:
             print("\nВ директории ~/.ssh нет ключей формата id_ed25519_*")
             return 1
         
-        # Показываем список
+        # Show the list
         print("📋 Доступные SSH ключи:\n")
         for idx, (full_name, host_name) in enumerate(keys, 1):
             print(f"  {idx}. {host_name}")
@@ -52,7 +52,7 @@ def main() -> int:
             print(f"     Ключ: id_ed25519_{full_name}")
             print()
         
-        # Запрашиваем выбор
+        # Ask for the choice
         while True:
             try:
                 choice = input("Введите номер ключа для удаления (или 'q' для отмены): ").strip()
@@ -71,7 +71,7 @@ def main() -> int:
             except ValueError:
                 print("⚠️  Введите корректное число или 'q'")
         
-        # Подтверждение
+        # Confirmation
         print()
         print_separator("─")
         print(f"⚠️  ВНИМАНИЕ! Вы собираетесь удалить:")
@@ -87,7 +87,7 @@ def main() -> int:
             print("\n❌ Операция отменена")
             return 1
         
-        # Выполняем удаление
+        # Perform the deletion
         print_header(f"Удаление ключа {selected_host}")
         
         success, message = manager.remove_ssh_key(selected_full_name)

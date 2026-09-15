@@ -1,8 +1,8 @@
 """
 Clone Repository Script
 
-Скрипт для клонирования репозиториев через SSH с автоматическим
-определением нужного SSH ключа на основе пути и настройкой git config.
+Script for cloning repositories via SSH with automatic
+detection of the required SSH key from the path and git config setup.
 """
 
 import sys
@@ -15,12 +15,12 @@ from ssh_manager import SSHManager
 
 
 def print_separator(char: str = "═", length: int = 60) -> None:
-    """Печатает разделитель."""
+    """Prints a separator."""
     print(char * length)
 
 
 def print_header(text: str) -> None:
-    """Печатает заголовок раздела."""
+    """Prints a section header."""
     print()
     print_separator()
     print(f"📦 {text}")
@@ -30,27 +30,27 @@ def print_header(text: str) -> None:
 
 def parse_target_path(target_path: str) -> Optional[Tuple[str, str, str]]:
     """
-    Парсит целевой путь для извлечения информации.
+    Parse the target path to extract information.
     
     Args:
-        target_path: Путь вида C:\\...\\WT-AC-2025 (Kozlovskaya)
+        target_path: Path like C:\\...\\WT-AC-2025 (Kozlovskaya)
         
     Returns:
-        Tuple (parent_dir, repo_name, surname) или None при ошибке
+        Tuple (parent_dir, repo_name, surname) or None on error
         
     Example:
         "C:\\Users\\...\\WT-AC-2025 (Kozlovskaya)" →
         ("C:\\Users\\...", "WT-AC-2025", "Kozlovskaya")
     """
     try:
-        # Нормализуем путь
+        # Normalize the path
         target_path = os.path.normpath(target_path.strip())
         
-        # Извлекаем последнюю часть пути (имя папки)
+        # Extract the last part of the path (folder name)
         folder_name = os.path.basename(target_path)
         parent_dir = os.path.dirname(target_path)
         
-        # Парсим формат "RepoName (Surname)"
+        # Parse the "RepoName (Surname)" format
         pattern = r'^(.+?)\s*\(([^)]+)\)$'
         match = re.match(pattern, folder_name)
         
@@ -68,14 +68,14 @@ def parse_target_path(target_path: str) -> Optional[Tuple[str, str, str]]:
 
 def get_full_name_from_config(surname: str, ssh_manager: SSHManager) -> Optional[str]:
     """
-    Пытается найти полное имя на основе фамилии из SSH config.
+    Try to find the full name based on the surname from SSH config.
     
     Args:
-        surname: Фамилия пользователя
-        ssh_manager: Экземпляр SSHManager
+        surname: User surname
+        ssh_manager: SSHManager instance
         
     Returns:
-        Полное имя или None, если не найдено
+        Full name or None if not found
     """
     try:
         config_path = ssh_manager.config_path
@@ -85,7 +85,7 @@ def get_full_name_from_config(surname: str, ssh_manager: SSHManager) -> Optional
         
         config_content = config_path.read_text(encoding='utf-8')
         
-        # Ищем Host с фамилией
+        # Look for a Host with the surname
         pattern = rf'Host github-(\w*{re.escape(surname)}\w*)'
         matches = re.findall(pattern, config_content, re.IGNORECASE)
         
@@ -107,28 +107,28 @@ def clone_repository(
     git_email: str
 ) -> Tuple[bool, str]:
     """
-    Клонирует репозиторий и настраивает git config.
+    Clone the repository and configure git config.
     
     Args:
-        repo_name: Имя репозитория
+        repo_name: Repository name
         username: GitHub username
-        host_name: SSH host из config (например, github-Kozlovskaya)
-        target_path: Путь куда клонировать
-        git_user_name: Имя для git config user.name
-        git_email: Email для git config user.email
+        host_name: SSH host from config (e.g., github-Kozlovskaya)
+        target_path: Where to clone
+        git_user_name: Name for git config user.name
+        git_email: Email for git config user.email
         
     Returns:
-        Tuple (успех, сообщение)
+        Tuple (success, message)
     """
     try:
-        # Формируем команду клонирования
+        # Build the clone command
         clone_url = f"git@{host_name}:{username}/{repo_name}.git"
         
         print(f"🔹 Клонирование: {clone_url}")
         print(f"🔹 В директорию: {target_path}")
         print()
         
-        # Клонируем репозиторий
+        # Clone the repository
         cmd = ["git", "clone", clone_url, target_path]
         
         result = subprocess.run(
@@ -144,20 +144,20 @@ def clone_repository(
         print("✅ Репозиторий успешно склонирован")
         print()
         
-        # Настраиваем git config в склонированном репозитории
+        # Configure git config in the cloned repository
         repo_path = Path(target_path)
         
         if not repo_path.exists():
             return False, "❌ Директория репозитория не найдена после клонирования"
         
-        # Устанавливаем user.name
+        # Set user.name
         cmd_name = ["git", "-C", str(repo_path), "config", "user.name", git_user_name]
         result = subprocess.run(cmd_name, capture_output=True, text=True, check=False)
         
         if result.returncode != 0:
             return False, f"❌ Ошибка настройки user.name:\n{result.stderr}"
         
-        # Устанавливаем user.email
+        # Set user.email
         cmd_email = ["git", "-C", str(repo_path), "config", "user.email", git_email]
         result = subprocess.run(cmd_email, capture_output=True, text=True, check=False)
         
@@ -176,18 +176,18 @@ def clone_repository(
 
 def main() -> int:
     """
-    Основная функция клонирования репозитория.
+    Main repository cloning function.
     
     Returns:
-        Код возврата (0 - успех, 1 - ошибка)
+        Exit code (0 - success, 1 - error)
     """
     try:
         print_header("Клонирование репозитория через SSH")
         
-        # Инициализация менеджера
+        # Initialize the manager
         ssh_manager = SSHManager()
         
-        # Шаг 1: Получение целевого пути
+        # Step 1: Get the target path
         print("📝 Введите данные для клонирования:\n")
         print("ℹ️  Формат пути: C:\\...\\RepoName (Surname)")
         print("   Например: C:\\Users\\kseni\\Documents\\WT-AC-2025 (Kozlovskaya)\n")
@@ -198,7 +198,7 @@ def main() -> int:
             print("❌ Путь не может быть пустым")
             return 1
         
-        # Парсим путь
+        # Parse the path
         parsed = parse_target_path(target_path)
         
         if not parsed:
@@ -213,7 +213,7 @@ def main() -> int:
         print(f"✓ Фамилия: {surname}")
         print()
         
-        # Пытаемся найти полное имя из SSH config
+        # Try to find the full name from SSH config
         full_name = get_full_name_from_config(surname, ssh_manager)
         
         if full_name:
@@ -232,7 +232,7 @@ def main() -> int:
         
         print()
         
-        # Шаг 2: Получение данных пользователя
+        # Step 2: Get user data
         print("📝 Введите данные GitHub пользователя:\n")
         
         git_user_name = input("Имя для git config (например, Anna Kozlovskaya): ").strip()
@@ -247,7 +247,7 @@ def main() -> int:
             print("❌ Username не может быть пустым")
             return 1
         
-        # Формируем email
+        # Build the email
         git_email = f"{username}@users.noreply.github.com"
         
         print()
@@ -263,16 +263,16 @@ def main() -> int:
         print("═" * 60)
         print()
         
-        # Проверяем существование целевой директории
+        # Check the target directory
         if os.path.exists(target_path):
             print(f"\n⚠️  Директория {target_path} уже существует!")
             print("🔄 Продолжаем клонирование (возможны ошибки)...")
             print()
         
-        # Создаем родительскую директорию если её нет
+        # Create the parent directory if it does not exist
         os.makedirs(parent_dir, exist_ok=True)
         
-        # Шаг 3: Клонирование
+        # Step 3: Cloning
         print_header("Клонирование репозитория")
         
         success, message = clone_repository(
@@ -290,7 +290,7 @@ def main() -> int:
         if not success:
             return 1
         
-        # Финальная информация
+        # Final information
         print()
         print_separator("═")
         print("✅ Репозиторий успешно настроен и готов к работе!")

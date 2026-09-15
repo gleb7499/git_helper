@@ -1,8 +1,8 @@
 """
 SSH Manager Module
 
-Модуль для безопасного управления SSH ключами и конфигурацией.
-Поддерживает генерацию ключей, настройку SSH config и управление ssh-agent.
+Module for secure management of SSH keys and configuration.
+Supports key generation, SSH config setup, and ssh-agent management.
 """
 
 import os
@@ -13,76 +13,76 @@ from typing import Optional, Tuple
 
 
 class SSHManager:
-    """Менеджер для работы с SSH ключами и конфигурацией."""
+    """Manager for working with SSH keys and configuration."""
     
     def __init__(self):
-        """Инициализация менеджера SSH."""
+        """Initialize the SSH manager."""
         self.ssh_dir = Path.home() / ".ssh"
         self.config_path = self.ssh_dir / "config"
         
     def ensure_ssh_directory(self) -> None:
-        """Создает директорию .ssh если её нет."""
+        """Creates the .ssh directory if it does not exist."""
         self.ssh_dir.mkdir(mode=0o700, exist_ok=True)
         
     def validate_username(self, username: str) -> bool:
         """
-        Проверяет корректность GitHub username.
+        Check that the GitHub username is valid.
         
         Args:
-            username: GitHub username для проверки
+            username: GitHub username to check
             
         Returns:
-            True если username валиден, иначе False
+            True if the username is valid, otherwise False
         """
-        # GitHub username может содержать только буквы, цифры и дефисы
-        # Не может начинаться с дефиса и должен быть от 1 до 39 символов
+        # GitHub username may contain only letters, digits, and hyphens
+        # Cannot start with a hyphen and must be 1 to 39 characters
         pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9-]{0,38})?$'
         return bool(re.match(pattern, username))
     
     def validate_name(self, name: str) -> bool:
         """
-        Проверяет корректность имени/фамилии.
+        Check that the first name/surname is valid.
         
         Args:
-            name: Имя или фамилия для проверки
+            name: First name or surname to check
             
         Returns:
-            True если имя валидно, иначе False
+            True if the name is valid, otherwise False
         """
-        # Имя должно содержать только буквы (латиница/кириллица)
-        # и быть от 2 до 50 символов
+        # The name must contain only letters (Latin/Cyrillic)
+        # and be 2 to 50 characters
         pattern = r'^[a-zA-Zа-яА-ЯёЁ]{2,50}$'
         return bool(re.match(pattern, name))
     
     def generate_ssh_key(self, username: str, full_name: str) -> Tuple[bool, str]:
         """
-        Генерирует новый SSH ключ ed25519.
+        Generate a new ed25519 SSH key.
         
         Args:
             username: GitHub username
-            full_name: Полное имя (фамилия + имя без пробелов, например KozlovskayaAnna)
+            full_name: Full name (surname + first name without spaces, e.g., KozlovskayaAnna)
             
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             self.ensure_ssh_directory()
             
-            # Формируем имена файлов
+            # Build the file names
             key_name = f"id_ed25519_{full_name}"
             key_path = self.ssh_dir / key_name
             
-            # Проверяем, не существует ли уже ключ
+            # Check that the key does not already exist
             if key_path.exists():
                 return False, f"⚠️  Ключ {key_name} уже существует!"
             
-            # Генерируем ключ
+            # Generate the key
             cmd = [
                 "ssh-keygen",
                 "-t", "ed25519",
                 "-C", username,
                 "-f", str(key_path),
-                "-N", ""  # Без пароля
+                "-N", ""  # No passphrase
             ]
             
             result = subprocess.run(
@@ -95,7 +95,7 @@ class SSHManager:
             if result.returncode != 0:
                 return False, f"❌ Ошибка генерации ключа: {result.stderr}"
             
-            # Устанавливаем правильные права доступа
+            # Set proper file permissions
             key_path.chmod(0o600)
             
             return True, f"✅ SSH ключ успешно создан: {key_name}"
@@ -105,13 +105,13 @@ class SSHManager:
     
     def add_key_to_agent(self, full_name: str) -> Tuple[bool, str]:
         """
-        Добавляет SSH ключ в ssh-agent.
+        Add an SSH key to ssh-agent.
         
         Args:
-            full_name: Полное имя для идентификации ключа
+            full_name: Full name identifying the key
             
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             key_path = self.ssh_dir / f"id_ed25519_{full_name}"
@@ -119,7 +119,7 @@ class SSHManager:
             if not key_path.exists():
                 return False, f"❌ Ключ не найден: {key_path}"
             
-            # Добавляем ключ в агент
+            # Add the key to the agent
             cmd = ["ssh-add", str(key_path)]
             
             result = subprocess.run(
@@ -130,7 +130,7 @@ class SSHManager:
             )
             
             if result.returncode != 0:
-                # Возможно ssh-agent не запущен
+                # ssh-agent is probably not running
                 return False, (
                     "❌ Не удалось добавить ключ в ssh-agent.\n"
                     "Возможно, ssh-agent не запущен. Запустите:\n"
@@ -144,13 +144,13 @@ class SSHManager:
     
     def get_public_key(self, full_name: str) -> Optional[str]:
         """
-        Читает содержимое публичного ключа.
+        Read the contents of the public key.
         
         Args:
-            full_name: Полное имя для идентификации ключа
+            full_name: Full name identifying the key
             
         Returns:
-            Содержимое публичного ключа или None при ошибке
+            Public key contents or None on error
         """
         try:
             pub_key_path = self.ssh_dir / f"id_ed25519_{full_name}.pub"
@@ -165,51 +165,51 @@ class SSHManager:
     
     def extract_surname(self, full_name: str) -> str:
         """
-        Извлекает фамилию из полного имени.
-        Предполагается формат: ФамилияИмя (например, GritsukPavel -> Gritsuk)
+        Extract the surname from the full name.
+        Expected format: SurnameFirstName (e.g., GritsukPavel -> Gritsuk)
         
         Args:
-            full_name: Полное имя (ФамилияИмя)
+            full_name: Full name (SurnameFirstName)
             
         Returns:
-            Фамилия
+            Surname
         """
-        # Используем регулярное выражение для разбиения на заглавные буквы
-        # Паттерн: ищем последовательность букв, начинающуюся с заглавной
+        # Use a regular expression to split on capital letters
+        # Pattern: look for a sequence of letters starting with a capital
         parts = re.findall(r'[A-ZА-ЯЁ][a-zа-яё]*', full_name)
         
-        # Первая часть - это фамилия
+        # The first part is the surname
         if parts:
             return parts[0]
         
-        # Fallback: если не удалось разобрать, возвращаем весь full_name
+        # Fallback: if parsing failed, return the whole full_name
         return full_name
     
     def update_ssh_config(self, full_name: str) -> Tuple[bool, str]:
         """
-        Добавляет или обновляет запись в SSH config.
+        Add or update an entry in the SSH config.
         
         Args:
-            full_name: Полное имя для идентификации ключа (ФамилияИмя)
+            full_name: Full name identifying the key (SurnameFirstName)
             
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             self.ensure_ssh_directory()
             
-            # Извлекаем фамилию для Host
+            # Extract the surname for the Host
             surname = self.extract_surname(full_name)
             host_name = f"github-{surname}"
             
-            # Полное имя используется для IdentityFile
+            # The full name is used for IdentityFile
             key_path = self.ssh_dir / f"id_ed25519_{full_name}"
             
-            # Проверяем существование ключа
+            # Check the key
             if not key_path.exists():
                 return False, f"❌ Ключ не найден: {key_path}"
             
-            # Формируем новую запись для config
+            # Build the new config entry
             new_entry = f"""
 Host {host_name}
     HostName ssh.github.com
@@ -219,21 +219,21 @@ Host {host_name}
     IdentitiesOnly yes
 """
             
-            # Читаем существующий config или создаем новый
+            # Read the existing config or create a new one
             if self.config_path.exists():
                 config_content = self.config_path.read_text(encoding='utf-8')
                 
-                # Проверяем, не существует ли уже запись для этого хоста
+                # Check that an entry for this host does not already exist
                 host_pattern = f"Host {host_name}\\s"
                 if re.search(host_pattern, config_content):
                     return False, f"⚠️  Запись для {host_name} уже существует в config"
                 
-                # Добавляем новую запись
+                # Add the new entry
                 config_content += new_entry
             else:
                 config_content = new_entry.lstrip()
             
-            # Записываем обновленный config
+            # Write the updated config
             self.config_path.write_text(config_content, encoding='utf-8')
             self.config_path.chmod(0o600)
             
@@ -244,10 +244,10 @@ Host {host_name}
     
     def check_ssh_agent_running(self) -> bool:
         """
-        Проверяет, запущен ли ssh-agent.
+        Check whether ssh-agent is running.
         
         Returns:
-            True если ssh-agent запущен, иначе False
+            True if ssh-agent is running, otherwise False
         """
         try:
             result = subprocess.run(
@@ -255,21 +255,21 @@ Host {host_name}
                 capture_output=True,
                 check=False
             )
-            # Код возврата 0 или 1 означает, что агент запущен
-            # (0 - есть ключи, 1 - нет ключей, но агент работает)
+            # Return code 0 or 1 means the agent is running
+            # (0 - keys present, 1 - no keys, but agent running)
             return result.returncode in [0, 1]
         except Exception:
             return False
     
     def start_ssh_agent_windows(self) -> Tuple[bool, str]:
         """
-        Запускает ssh-agent на Windows.
-        Пробует несколько методов запуска.
+        Start ssh-agent on Windows.
+        Tries several startup methods.
         
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
-        # Метод 1: Попытка запустить службу через sc
+        # Method 1: Try to start the service via sc
         try:
             result = subprocess.run(
                 ["sc", "start", "ssh-agent"],
@@ -286,7 +286,7 @@ Host {host_name}
         except Exception:
             pass
         
-        # Метод 2: Запуск через net start
+        # Method 2: Start via net start
         try:
             result = subprocess.run(
                 ["net", "start", "ssh-agent"],
@@ -303,7 +303,7 @@ Host {host_name}
         except Exception:
             pass
         
-        # Метод 3: Прямой запуск ssh-agent
+        # Method 3: Direct ssh-agent start
         try:
             result = subprocess.run(
                 ["ssh-agent"],
@@ -316,7 +316,7 @@ Host {host_name}
             if result.returncode == 0:
                 output = result.stdout
                 
-                # Парсим и устанавливаем переменные окружения
+                # Parse and set environment variables
                 sock_match = re.search(r'SSH_AUTH_SOCK=([^;]+);', output)
                 if sock_match:
                     sock_path = sock_match.group(1)
@@ -334,7 +334,7 @@ Host {host_name}
         except Exception:
             pass
         
-        # Все методы не сработали
+        # All methods failed
         return False, (
             "❌ Не удалось запустить ssh-agent автоматически.\n"
             "   SSH ключи будут работать и без агента, но для удобства\n"
@@ -344,34 +344,34 @@ Host {host_name}
     
     def get_host_name_from_full_name(self, full_name: str) -> str:
         """
-        Формирует имя хоста на основе полного имени.
-        Использует только фамилию (первую часть).
+        Build the host name based on the full name.
+        Uses only the surname (the first part).
         
         Args:
-            full_name: Полное имя пользователя (ФамилияИмя)
+            full_name: User full name (SurnameFirstName)
             
         Returns:
-            Имя хоста для SSH config (github-Фамилия)
+            Host name for SSH config (github-Surname)
         """
         surname = self.extract_surname(full_name)
         return f"github-{surname}"
     
     def list_ssh_keys(self) -> list:
         """
-        Возвращает список всех SSH ключей в формате (full_name, host_name).
+        Return the list of all SSH keys in (full_name, host_name) format.
         
         Returns:
-            Список кортежей (полное_имя, host_name)
+            List of tuples (full_name, host_name)
         """
         keys = []
         
         if not self.ssh_dir.exists():
             return keys
         
-        # Ищем все файлы id_ed25519_*
+        # Find all id_ed25519_* files
         for key_file in self.ssh_dir.glob("id_ed25519_*"):
-            if key_file.suffix != ".pub":  # Только приватные ключи
-                # Извлекаем полное имя из имени файла
+            if key_file.suffix != ".pub":  # Private keys only
+                # Extract the full name from the file name
                 full_name = key_file.stem.replace("id_ed25519_", "")
                 host_name = self.get_host_name_from_full_name(full_name)
                 keys.append((full_name, host_name))
@@ -380,23 +380,23 @@ Host {host_name}
     
     def remove_ssh_key(self, full_name: str) -> Tuple[bool, str]:
         """
-        Удаляет SSH ключ и все связанные данные:
-        - Приватный ключ
-        - Публичный ключ
-        - Запись из SSH config
-        - Ключ из ssh-agent (если загружен)
+        Delete an SSH key and all related data:
+        - Private key
+        - Public key
+        - SSH config entry
+        - Key from ssh-agent (if loaded)
         
         Args:
-            full_name: Полное имя пользователя (ФамилияИмя)
+            full_name: User full name (SurnameFirstName)
             
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             messages = []
             success_count = 0
             
-            # 1. Удаляем приватный ключ
+            # 1. Delete the private key
             private_key = self.ssh_dir / f"id_ed25519_{full_name}"
             if private_key.exists():
                 private_key.unlink()
@@ -405,7 +405,7 @@ Host {host_name}
             else:
                 messages.append(f"⚠️  Приватный ключ не найден: {private_key.name}")
             
-            # 2. Удаляем публичный ключ
+            # 2. Delete the public key
             public_key = self.ssh_dir / f"id_ed25519_{full_name}.pub"
             if public_key.exists():
                 public_key.unlink()
@@ -414,7 +414,7 @@ Host {host_name}
             else:
                 messages.append(f"⚠️  Публичный ключ не найден: {public_key.name}")
             
-            # 3. Удаляем из ssh-agent (если агент запущен)
+            # 3. Remove from ssh-agent (if the agent is running)
             if self.check_ssh_agent_running():
                 result = subprocess.run(
                     ["ssh-add", "-d", str(private_key)],
@@ -430,7 +430,7 @@ Host {host_name}
             else:
                 messages.append("⚠️  ssh-agent не запущен (пропуск удаления из агента)")
             
-            # 4. Удаляем из SSH config
+            # 4. Remove from SSH config
             success_config, msg_config = self.remove_from_config(full_name)
             if success_config:
                 messages.append(msg_config)
@@ -438,7 +438,7 @@ Host {host_name}
             else:
                 messages.append(msg_config)
             
-            # Итоговое сообщение
+            # Final message
             if success_count > 0:
                 result_msg = "\n".join(messages)
                 return True, f"{result_msg}\n\n✅ SSH ключ успешно удален ({success_count} операций)"
@@ -450,34 +450,34 @@ Host {host_name}
     
     def remove_from_config(self, full_name: str) -> Tuple[bool, str]:
         """
-        Удаляет запись из SSH config.
+        Delete an entry from the SSH config.
         
         Args:
-            full_name: Полное имя пользователя
+            full_name: User full name
             
         Returns:
-            Tuple (успех, сообщение)
+            Tuple (success, message)
         """
         try:
             if not self.config_path.exists():
                 return False, "⚠️  Файл config не существует"
             
-            # Читаем config
+            # Read the config
             config_content = self.config_path.read_text(encoding='utf-8')
             
-            # Формируем имя хоста для поиска
+            # Build the host name to search for
             host_name = self.get_host_name_from_full_name(full_name)
             
-            # Разбиваем на блоки Host
+            # Split into Host blocks
             lines = config_content.split('\n')
             new_lines = []
             skip_block = False
             found = False
             
             for line in lines:
-                # Проверяем начало блока Host
+                # Check for the start of a Host block
                 if line.strip().startswith('Host '):
-                    # Если это наш блок - пропускаем его
+                    # If this is our block - skip it
                     if f"Host {host_name}" in line:
                         skip_block = True
                         found = True
@@ -485,18 +485,18 @@ Host {host_name}
                     else:
                         skip_block = False
                 
-                # Если не пропускаем блок, добавляем строку
+                # If not skipping the block, add the line
                 if not skip_block:
                     new_lines.append(line)
                 elif line.strip().startswith('Host '):
-                    # Начался новый блок, перестаем пропускать
+                    # A new block started, stop skipping
                     skip_block = False
                     new_lines.append(line)
             
             if found:
-                # Записываем обновленный config
+                # Write the updated config
                 new_content = '\n'.join(new_lines)
-                # Убираем множественные пустые строки
+                # Remove multiple consecutive empty lines
                 new_content = re.sub(r'\n{3,}', '\n\n', new_content)
                 self.config_path.write_text(new_content, encoding='utf-8')
                 return True, f"✅ Удалена запись из config: {host_name}"

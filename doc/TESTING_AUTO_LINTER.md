@@ -1,102 +1,102 @@
-# 🧪 Тестовый сценарий: Автоматический выбор линтеров
+# 🧪 Test Scenario: Automatic Linter Selection
 
-## Подготовка к тестированию
+## Test Preparation
 
-### Предварительные условия
+### Prerequisites
 
-- ✅ Docker Desktop запущен
-- ✅ Есть Git-репозиторий с разными типами файлов
-- ✅ Установлен Python 3.8+
+- ✅ Docker Desktop running
+- ✅ A Git repository with different file types
+- ✅ Python 3.8+ installed
 
-## Тест 1: Папка с разными типами файлов
+## Test 1: Folder with Different File Types
 
-### Исходные данные
+### Input Data
 
-Папка содержит:
+The folder contains:
 
-- 5 файлов `.md`
-- 3 файла `.html`
-- 2 файла `.css`
-- 1 файл `.js`
+- 5 `.md` files
+- 3 `.html` files
+- 2 `.css` files
+- 1 `.js` file
 
-### Шаги
+### Steps
 
-1. Запустить `git_helper.bat`
-2. Выбрать пункт `6`
-3. Ввести путь к папке
-4. Дождаться автоматического анализа
+1. Run `git_helper.bat`
+2. Choose option `6`
+3. Enter the folder path
+4. Wait for the automatic analysis
 
-### Ожидаемый результат
+### Expected Result
 
 ```text
-📊 Статистика файлов:
-   .md             — 5 файл(ов)
-   .html           — 3 файл(ов)
-   .css            — 2 файл(ов)
-   .js             — 1 файл(ов)
+📊 File statistics:
+   .md             — 5 file(s)
+   .html           — 3 file(s)
+   .css            — 2 file(s)
+   .js             — 1 file(s)
 
-🔍 Автоматически выбрано линтеров: 4
+🔍 Automatically selected linters: 4
    ✓ Markdown
    ✓ HTML
    ✓ CSS/SCSS
    ✓ JavaScript/ES
 ```
 
-## Тест 2: Только Python файлы
+## Test 2: Only Python Files
 
-### Исходные данные
+### Input Data
 
-Папка содержит только `.py` файлы
+The folder contains only `.py` files
 
-### Ожидаемый результат
+### Expected Result
 
 ```
-📊 Статистика файлов:
-   .py             — 8 файл(ов)
+📊 File statistics:
+   .py             — 8 file(s)
 
-🔍 Автоматически выбрано линтеров: 2
+🔍 Automatically selected linters: 2
    ✓ Python (Pylint)
    ✓ Python (Flake8)
 ```
 
-## Тест 3: Смешанные расширения
+## Test 3: Mixed Extensions
 
-### Исходные данные
+### Input Data
 
 - `.md`, `.json`, `.yml`, `.sh`
 
-### Ожидаемый результат
+### Expected Result
 
 ```
-📊 Статистика файлов:
-   .md             — 3 файл(ов)
-   .json           — 2 файл(ов)
-   .yml            — 1 файл(ов)
-   .sh             — 1 файл(ов)
+📊 File statistics:
+   .md             — 3 file(s)
+   .json           — 2 file(s)
+   .yml            — 1 file(s)
+   .sh             — 1 file(s)
 
-🔍 Автоматически выбрано линтеров: 4
+🔍 Automatically selected linters: 4
    ✓ Markdown
    ✓ JSON
    ✓ YAML
    ✓ Bash
 ```
 
-## Тест 4: Папка без поддерживаемых файлов
+## Test 4: Folder Without Supported Files
 
-### Исходные данные
+### Input Data
 
-Папка содержит только `.txt`, `.pdf`, `.docx`
+The folder contains only `.txt`, `.pdf`, `.docx`
 
-### Ожидаемый результат
+### Expected Result
 
 ```
-⚠️  Не найдено файлов для проверки
-   Убедитесь, что в папке есть файлы с поддерживаемыми расширениями
+⚠️  No files found to check
+   Make sure the folder has files with supported extensions
 ```
 
-## Тест 5: Вложенная структура папок
+## Test 5: Nested Folder Structure
 
-### Исходные данные
+### Input Data
 
 ```
 task_05/
@@ -109,73 +109,73 @@ task_05/
   └── README.md
 ```
 
-### Ожидаемый результат
+### Expected Result
 
-Должны быть найдены все файлы рекурсивно:
+All files should be found recursively:
 
 ```
-📊 Статистика файлов:
-   .css            — 2 файл(ов)
-   .html           — 1 файл(ов)
-   .js             — 1 файл(ов)
-   .md             — 1 файл(ов)
+📊 File statistics:
+   .css            — 2 file(s)
+   .html           — 1 file(s)
+   .js             — 1 file(s)
+   .md             — 1 file(s)
 
-🔍 Автоматически выбрано линтеров: 4
+🔍 Automatically selected linters: 4
    ✓ Markdown
    ✓ HTML
    ✓ CSS/SCSS
    ✓ JavaScript/ES
 ```
 
-## Тест 6: Пути с кириллицей и пробелами
+## Test 6: Paths with Cyrillic and Spaces
 
-### Исходные данные
+### Input Data
 
-Путь вида:
+A path like:
 
 ```
 C:\Users\ксения\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05
 ```
 
-### Ожидаемый результат
+### Expected Result
 
-- Сканирование работает корректно
-- Русские буквы и пробелы обрабатываются
-- Статистика отображается правильно
+- Scanning works correctly
+- Cyrillic characters and spaces are handled
+- Statistics are displayed correctly
 
-## Проверка безопасности
+## Security Check
 
-### Тест: Несуществующая папка
+### Test: Non-existent folder
 
-**Вход:** Путь к несуществующей директории  
-**Ожидание:** `❌ Папка не существует: ...`
+**Input:** Path to a non-existent directory  
+**Expected:** `❌ Folder does not exist: ...`
 
-### Тест: Файл вместо папки
+### Test: File instead of folder
 
-**Вход:** Путь к файлу  
-**Ожидание:** `❌ Указанный путь не является папкой: ...`
+**Input:** Path to a file  
+**Expected:** `❌ The specified path is not a folder: ...`
 
-### Тест: Пустая строка
+### Test: Empty string
 
-**Вход:** Пустой путь  
-**Ожидание:** `❌ Путь не может быть пустым`
+**Input:** Empty path  
+**Expected:** `❌ Path cannot be empty`
 
-## Проверка производительности
+## Performance Check
 
-### Большая папка (1000+ файлов)
+### Large folder (1000+ files)
 
-- Время сканирования < 5 секунд
-- Корректный подсчет всех файлов
-- Нет зависаний интерфейса
+- Scan time < 5 seconds
+- Correct count of all files
+- No interface freezes
 
-## Итоговая проверка
+## Final Check
 
-После всех тестов убедиться:
+After all tests, verify:
 
-- ✅ Автоматический выбор работает для всех поддерживаемых типов
-- ✅ Рекурсивное сканирование находит все файлы
-- ✅ Пути с кириллицей и пробелами обрабатываются
-- ✅ Ошибки обрабатываются корректно
-- ✅ Статистика отображается читаемо
-- ✅ Линтеры выбираются правильно
-- ✅ Docker запускается с правильными параметрами
+- ✅ Automatic selection works for all supported types
+- ✅ Recursive scanning finds all files
+- ✅ Paths with Cyrillic and spaces are handled
+- ✅ Errors are handled correctly
+- ✅ Statistics are displayed readably
+- ✅ Linters are selected correctly
+- ✅ Docker launches with the correct parameters
