@@ -1,0 +1,13 @@
+Run a documentation and code-quality review for the project.
+
+Check:
+
+- Markdown structure and links;
+- Python style, imports, and error handling;
+- batch-script quoting and exit codes;
+- Docker command safety;
+- cross-platform path handling;
+- accidental credentials or personal data;
+- consistency between README instructions and the actual scripts.
+
+Group findings by severity, provide file paths, and suggest the smallest practical fix. Never include secret values in the report.

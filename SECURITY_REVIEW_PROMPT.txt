@@ -1,0 +1,11 @@
+Review the project for comments, strings, examples, or documentation that could expose credentials, private keys, tokens, internal URLs, personal data, or unsafe operational details.
+
+For each finding:
+
+1. Identify the file and the exact risk.
+2. Remove or rewrite the sensitive content.
+3. Replace real values with safe placeholders.
+4. Check the Git history when a credential may have been committed previously.
+5. Verify that ignored secret files are not tracked.
+
+Do not print secret values in the report. Report only the file path, commit, type of secret, and remediation status.

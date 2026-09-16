@@ -134,7 +134,7 @@ All files should be found recursively:
 A path like:
 
 ```
-C:\Users\ксения\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05
+C:\Users\username\Documents\projects\WT-AC-2025 (Example)\students\ExampleUser\task_05
 ```
 
 ### Expected Result

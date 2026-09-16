@@ -22,7 +22,7 @@ git_helper.bat → Choose option 6
 
 Example:
 ```
-C:\Users\kseni\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kotkovets)\students\KotkovetsKirill\task_05
+C:\Users\username\Documents\projects\WT-AC-2025 (Example)\students\ExampleUser\task_05
 ```
 
 **Important:**

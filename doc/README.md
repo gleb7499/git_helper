@@ -86,7 +86,7 @@ The script will automatically:
 ```bash
 # Run git_helper.bat and choose option 2
 # Enter the path in the format:
-# C:\Users\kseni\Documents\Универ\4-курс\ВЕБ\others\WT-AC-2025 (Kozlovskaya)
+# C:\Users\username\Documents\projects\WT-AC-2025 (Example)
 ```
 
 The script will automatically:

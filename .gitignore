@@ -46,6 +46,8 @@ github-tokens/
 *.txt
 !LICENSE
 !README.md
+!SECURITY_REVIEW_PROMPT.txt
+!LINTER_REVIEW_PROMPT.txt
 
 # Test/Debug
 .pytest_cache/

@@ -1,63 +1,51 @@
-# 🚀 Git Helper
+# Git Helper
 
-Automation of Git and SSH key management for student projects.
+Git Helper is a personal Windows automation toolkit I built to remove repetitive setup work from my Git and SSH workflow. It is useful when several repositories, GitHub identities, upstream forks, branches, and code-quality checks must be managed consistently.
 
-## Quick Start
+## The problem
 
-### Main menu
+Repository setup used to require repeating the same fragile steps: generating an SSH key, editing `~/.ssh/config`, cloning with the right host alias, configuring Git identity, synchronizing an upstream repository, and creating a working branch. Small mistakes in those steps are expensive when the same workflow is repeated across many projects.
 
-```bash
+## The solution
+
+Git Helper turns that workflow into a guided command-line menu backed by focused Python modules. It validates input, derives repository information from the working path, configures SSH and Git, and keeps the routine steps reproducible.
+
+## Included tools
+
+- `git_helper.bat`: interactive entry point and virtual-environment bootstrap;
+- `ssh_manager.py`: Ed25519 key generation, SSH config, and ssh-agent integration;
+- `create_ssh_key.py`: guided GitHub key setup;
+- `clone_repository.py`: SSH cloning with repository and identity configuration;
+- `sync_upstream.py`: update the local `main` branch from an upstream repository;
+- `create_branch.py`: synchronize `main`, create a branch, and publish it;
+- `run_linter.py`: Docker-based Super-Linter launcher;
+- `git_docker_utils.py`: shared Docker and Git helpers.
+
+## Quick start
+
+Requirements: Python 3.8+, Git, Git Bash for Windows, and Docker Desktop for linting.
+
+```bat
 git_helper.bat
 ```
 
-### Quick code check (from any folder)
+The menu covers SSH key creation, repository cloning, upstream synchronization, branch creation, and linting. Individual scripts can also be run from an activated virtual environment:
 
-```bash
-quick_lint
+```bat
+python src/create_ssh_key.py
+python src/clone_repository.py
+python src/sync_upstream.py
+python src/create_branch.py
 ```
-
-> Add the project path to PATH to use `quick_lint` from anywhere. [More details →](doc/QUICK_LINT.md)
-
-## Project Structure
-
-```text
-git_helper.bat          # Main menu (run this!)
-quick_lint.bat          # Quick check (from anywhere)
-src/                    # Python scripts
-  ├── ssh_manager.py
-  ├── create_ssh_key.py
-  ├── delete_ssh_key.py
-  ├── clone_repository.py
-  ├── sync_upstream.py
-  ├── create_branch.py
-  ├── git_docker_utils.py  # Docker utilities
-  └── run_linter.py        # Super-linter launcher
-doc/                    # Documentation
-  ├── QUICKSTART.md     # Start with this file!
-  ├── CHEATSHEET.md     # Quick reference
-  ├── USAGE_GUIDE.md    # Detailed instructions
-  ├── LINTER_GUIDE.md   # Linter guide
-  ├── QUICK_LINT.md     # Quick code check
-  ├── README.md         # Full documentation
-  └── SUMMARY.md        # Change log
-```
-
-## Menu
-
-1. **Create SSH key** - for a new client (first time)
-2. **Delete SSH key** - remove a key from the system
-3. **Clone repository** - after creating a key
-4. **Update main** - sync with the teacher's repo
-5. **Create branch** - for a new lab assignment
-6. **Run super-linter** - code quality check (NEW!)
-7. **Exit**
 
 ## Documentation
 
-📖 Full documentation in the **doc/** folder
+Detailed guides are available in `doc/`, including the quick lint workflow, linter configuration, testing notes, and architecture notes.
 
-Start with `doc/QUICKSTART.md` for a quick start!
+## Security
 
----
+The toolkit never stores passwords or private keys in the repository. SSH material stays under the user's home directory, sensitive folders are ignored, and input paths are validated before changes are made. Never commit tokens, private keys, or personal credentials.
 
-**Requirements:** Python 3.8+, Git, Git Bash, Docker Desktop (for the linter)
+## License
+
+This personal utility is available under the [Creative Commons Attribution-NonCommercial 4.0 International license](LICENSE). Non-commercial sharing and adaptation are welcome with attribution to Loginov Gleb; commercial use requires prior written permission.
