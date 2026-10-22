@@ -2,10 +2,9 @@
 SSH Manager Module
 
 Module for secure management of SSH keys and configuration.
-Supports key generation, SSH config setup, and ssh-agent management.
+Supports key generation and SSH config setup.
 """
 
-import os
 import subprocess
 import re
 from pathlib import Path
@@ -99,45 +98,6 @@ class SSHManager:
             key_path.chmod(0o600)
             
             return True, f"✅ SSH ключ успешно создан: {key_name}"
-            
-        except Exception as e:
-            return False, f"❌ Ошибка: {str(e)}"
-    
-    def add_key_to_agent(self, full_name: str) -> Tuple[bool, str]:
-        """
-        Add an SSH key to ssh-agent.
-        
-        Args:
-            full_name: Full name identifying the key
-            
-        Returns:
-            Tuple (success, message)
-        """
-        try:
-            key_path = self.ssh_dir / f"id_ed25519_{full_name}"
-            
-            if not key_path.exists():
-                return False, f"❌ Ключ не найден: {key_path}"
-            
-            # Add the key to the agent
-            cmd = ["ssh-add", str(key_path)]
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            
-            if result.returncode != 0:
-                # ssh-agent is probably not running
-                return False, (
-                    "❌ Не удалось добавить ключ в ssh-agent.\n"
-                    "Возможно, ssh-agent не запущен. Запустите:\n"
-                    "  eval \"$(ssh-agent -s)\""
-                )
-            
-            return True, "✅ Ключ добавлен в ssh-agent"
             
         except Exception as e:
             return False, f"❌ Ошибка: {str(e)}"
@@ -242,106 +202,6 @@ Host {host_name}
         except Exception as e:
             return False, f"❌ Ошибка обновления config: {str(e)}"
     
-    def check_ssh_agent_running(self) -> bool:
-        """
-        Check whether ssh-agent is running.
-        
-        Returns:
-            True if ssh-agent is running, otherwise False
-        """
-        try:
-            result = subprocess.run(
-                ["ssh-add", "-l"],
-                capture_output=True,
-                check=False
-            )
-            # Return code 0 or 1 means the agent is running
-            # (0 - keys present, 1 - no keys, but agent running)
-            return result.returncode in [0, 1]
-        except Exception:
-            return False
-    
-    def start_ssh_agent_windows(self) -> Tuple[bool, str]:
-        """
-        Start ssh-agent on Windows.
-        Tries several startup methods.
-        
-        Returns:
-            Tuple (success, message)
-        """
-        # Method 1: Try to start the service via sc
-        try:
-            result = subprocess.run(
-                ["sc", "start", "ssh-agent"],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            
-            if result.returncode == 0 or "уже запущена" in result.stdout.lower() or "running" in result.stdout.lower():
-                import time
-                time.sleep(1)
-                if self.check_ssh_agent_running():
-                    return True, "✅ ssh-agent успешно запущен (служба Windows)"
-        except Exception:
-            pass
-        
-        # Method 2: Start via net start
-        try:
-            result = subprocess.run(
-                ["net", "start", "ssh-agent"],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            
-            if result.returncode == 0 or "уже запущена" in result.stdout.lower():
-                import time
-                time.sleep(1)
-                if self.check_ssh_agent_running():
-                    return True, "✅ ssh-agent успешно запущен (net start)"
-        except Exception:
-            pass
-        
-        # Method 3: Direct ssh-agent start
-        try:
-            result = subprocess.run(
-                ["ssh-agent"],
-                capture_output=True,
-                text=True,
-                check=False,
-                shell=False
-            )
-            
-            if result.returncode == 0:
-                output = result.stdout
-                
-                # Parse and set environment variables
-                sock_match = re.search(r'SSH_AUTH_SOCK=([^;]+);', output)
-                if sock_match:
-                    sock_path = sock_match.group(1)
-                    os.environ['SSH_AUTH_SOCK'] = sock_path
-                
-                pid_match = re.search(r'SSH_AGENT_PID=(\d+);', output)
-                if pid_match:
-                    os.environ['SSH_AGENT_PID'] = pid_match.group(1)
-                
-                import time
-                time.sleep(0.5)
-                
-                if self.check_ssh_agent_running():
-                    return True, "✅ ssh-agent успешно запущен (прямой запуск)"
-        except Exception:
-            pass
-        
-        # All methods failed
-        return False, (
-            "❌ Не удалось запустить ssh-agent автоматически.\n"
-            "   SSH ключи будут работать и без агента, но для удобства\n"
-            "   вы можете запустить агент вручную в Git Bash:\n"
-            "   eval \"$(ssh-agent -s)\""
-        )
-    
     def get_host_name_from_full_name(self, full_name: str) -> str:
         """
         Build the host name based on the full name.
@@ -384,7 +244,6 @@ Host {host_name}
         - Private key
         - Public key
         - SSH config entry
-        - Key from ssh-agent (if loaded)
         
         Args:
             full_name: User full name (SurnameFirstName)
@@ -414,23 +273,7 @@ Host {host_name}
             else:
                 messages.append(f"⚠️  Публичный ключ не найден: {public_key.name}")
             
-            # 3. Remove from ssh-agent (if the agent is running)
-            if self.check_ssh_agent_running():
-                result = subprocess.run(
-                    ["ssh-add", "-d", str(private_key)],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                if result.returncode == 0:
-                    messages.append("✅ Ключ удален из ssh-agent")
-                    success_count += 1
-                else:
-                    messages.append("⚠️  Ключ не был загружен в ssh-agent")
-            else:
-                messages.append("⚠️  ssh-agent не запущен (пропуск удаления из агента)")
-            
-            # 4. Remove from SSH config
+            # 3. Remove from SSH config
             success_config, msg_config = self.remove_from_config(full_name)
             if success_config:
                 messages.append(msg_config)

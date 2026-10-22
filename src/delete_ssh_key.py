@@ -2,7 +2,7 @@
 Delete SSH Key Script
 
 Interactive script for deleting an SSH key.
-Deletes the key completely: files, config entry, ssh-agent entry.
+Deletes the key completely: files and config entry.
 """
 
 import sys
